@@ -1,4 +1,4 @@
-type Env = 'node' | 'browser' | 'unknown';
+export type Env = 'node' | 'browser' | 'unknown';
 
 export interface ProfilerOptions {}
 
