@@ -65,12 +65,7 @@ export class NanoProfiler {
         const startMem = this.mem();
         const res = fn();
 
-        this.record(
-            this.now() - startTime,
-            this.mem() - startMem,
-            res, label, meta
-        );
-
+        this.record( this.now() - startTime, this.mem() - startMem, res, label, meta );
         return res;
     }
 
@@ -79,12 +74,7 @@ export class NanoProfiler {
         const startMem = this.mem();
         const res = await fn();
 
-        this.record(
-            this.now() - startTime,
-            this.mem() - startMem,
-            res, label, meta
-        );
-
+        this.record( this.now() - startTime, this.mem() - startMem, res, label, meta );
         return res;
     }
 
@@ -120,12 +110,24 @@ export class NanoProfiler {
         return this.active = false;
     }
 
+    public getenv () : Env {
+        return this.env;
+    }
+
+    public isActive () : boolean {
+        return this.active;
+    }
+
     public run< T > ( fn: () => T, label?: string, meta?: any ) : T {
         return this.runner( fn, label, meta );
     }
 
     public async runAsync< T > ( fn: () => Promise< T >, label?: string, meta?: any ) : Promise< T > {
         return this.runnerAsync( fn, label, meta );
+    }
+
+    public report () : ProfilerEntry[] {
+        return [ ...this.entries ];
     }
 
     public flush () : ProfilerEntry[] {
