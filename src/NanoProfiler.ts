@@ -29,7 +29,7 @@ export class NanoProfiler {
         return this.runner( fn, label, meta );
     }
 
-    public runAsync< T > ( fn: () => Promise< T >, label?: string, meta?: any ) : Promise< T > {
+    public async runAsync< T > ( fn: () => Promise< T >, label?: string, meta?: any ) : Promise< T > {
         return this.runnerAsync( fn, label, meta );
     }
 
