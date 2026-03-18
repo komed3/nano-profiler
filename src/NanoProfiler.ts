@@ -29,13 +29,14 @@ export class NanoProfiler {
     private runner: RunnerFn< any >;
     private runnerAsync: AsyncRunnerFn< any >;
 
-    private active: boolean = true;
+    private active!: boolean;
 
     constructor (
         private readonly options: ProfilerOptions = {},
         private readonly hooks?: ProfilerHooks
     ) {
         if ( ! NanoProfiler.env ) NanoProfiler.detectEnv();
+        this.enable();
     }
 
     public enable () : void {
