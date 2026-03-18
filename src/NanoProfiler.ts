@@ -16,6 +16,12 @@ export class NanoProfiler {
 
     private static globalInstance?: NanoProfiler;
 
+    private static detectEnv () : void {
+        if ( typeof process !== 'undefined' && process.versions?.node ) this.env = 'node';
+        else if ( typeof performance !== 'undefined' ) this.env = 'browser';
+        else this.env = 'unknown';
+    }
+
     public static global () : NanoProfiler {
         return this.globalInstance ??= new NanoProfiler ();
     }
@@ -28,7 +34,9 @@ export class NanoProfiler {
     constructor (
         private readonly options: ProfilerOptions = {},
         private readonly hooks?: ProfilerHooks
-    ) {}
+    ) {
+        if ( ! NanoProfiler.env ) NanoProfiler.detectEnv();
+    }
 
     public enable () : void {
         if ( this.active ) return;
