@@ -21,4 +21,16 @@ export class NanoProfiler {
         private readonly hooks?: ProfilerHooks
     ) {}
 
+    public enable () : void {}
+
+    public disable () : void {}
+
+    public run< T > () : T {
+        return this.runner();
+    }
+
+    public runAsync< T > () : T {
+        return this.runnerAsync();
+    }
+
 }
