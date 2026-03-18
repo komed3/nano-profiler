@@ -87,7 +87,9 @@ export class NanoProfiler {
         return res;
     }
 
-    private record< T > ( time: number, mem: number | undefined, res: T, label?: string, meta?: any ) : void {}
+    private record< T > ( time: number, mem: number | undefined, res: T, label?: string, meta?: any ) : void {
+        this.entries.push( { label, time, mem, res, meta } );
+    }
 
     constructor (
         private readonly options: ProfilerOptions = {},
