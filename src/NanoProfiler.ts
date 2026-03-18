@@ -25,16 +25,6 @@ export class NanoProfiler {
 
     private active!: boolean;
 
-    constructor (
-        private readonly options: ProfilerOptions = {},
-        private readonly hooks?: ProfilerHooks
-    ) {
-        this.detectEnv();
-        this.setupTimers();
-
-        this.enable();
-    }
-
     private detectEnv () : void {
         if ( typeof process !== 'undefined' && process.versions?.node ) this.env = 'node';
         else if ( typeof performance !== 'undefined' ) this.env = 'browser';
@@ -47,13 +37,16 @@ export class NanoProfiler {
                 this.now = () => Number( process.hrtime.bigint() ) * 1e-6;
                 this.mem = () => process.memoryUsage().heapUsed;
                 break;
+
             case 'browser':
                 this.now = () => performance.now();
                 this.mem = () => ( performance as any ).memory?.usedJSHeapSize ?? 0;
                 break;
+
             default:
                 this.now = () => Date.now();
                 this.mem = () => 0;
+                break;
         }
     }
 
@@ -69,9 +62,33 @@ export class NanoProfiler {
         return res;
     }
 
+    private async runAsyncProfiled< T > ( fn: () => Promise< T >, label?: string, meta?: any ) : Promise< T > {
+        const startTime = this.now();
+        const startMem = this.mem();
+
+        const res = await fn();
+
+        const deltaTime = this.now() - startTime;
+        const deltaMem = this.mem() - startMem;
+
+        return res;
+    }
+
+    constructor (
+        private readonly options: ProfilerOptions = {},
+        private readonly hooks?: ProfilerHooks
+    ) {
+        this.detectEnv();
+        this.setupTimers();
+
+        this.enable();
+    }
+
     public enable () : void {
         if ( this.active ) return;
 
+        this.runner = this.runProfiled;
+        this.runnerAsync = this.runAsyncProfiled
         this.active = true;
     }
 
