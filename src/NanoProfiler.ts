@@ -2,7 +2,9 @@ export type Env = 'node' | 'browser' | 'unknown';
 
 export interface ProfilerOptions {}
 
-export interface ProfilerHooks {}
+export interface ProfilerHooks {
+    onEntry?: ( entry: ProfilerEntry ) => void
+}
 
 export interface ProfilerEntry< T = any > {
     label?: string;
@@ -88,7 +90,10 @@ export class NanoProfiler {
     }
 
     private record< T > ( time: number, mem: number | undefined, res: T, label?: string, meta?: any ) : void {
-        this.entries.push( { label, time, mem, res, meta } );
+        const entry: ProfilerEntry = { label, time, mem, res, meta };
+
+        this.entries.push( entry );
+        this.hooks?.onEntry?.( entry );
     }
 
     constructor (
