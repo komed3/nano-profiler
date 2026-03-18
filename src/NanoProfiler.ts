@@ -74,6 +74,8 @@ export class NanoProfiler {
         return res;
     }
 
+    private record< T > ( time: number, mem: number | undefined, res: T, label?: string, meta?: any ) : void {}
+
     constructor (
         private readonly options: ProfilerOptions = {},
         private readonly hooks?: ProfilerHooks
