@@ -16,6 +16,7 @@ export interface ProfilerEntry< T = any > {
 
 export type RunnerFn< T = any > = ( fn: () => T, label?: string, meta?: any ) => T;
 export type AsyncRunnerFn< T = any > = ( fn: () => Promise< T >, label?: string, meta?: any ) => Promise< T >;
+export type TimerFn = () => number;
 
 export class NanoProfiler {
 
@@ -27,13 +28,13 @@ export class NanoProfiler {
 
     private readonly env: Env;
 
-    private now!: () => number;
-    private mem!: () => number;
+    private now: TimerFn;
+    private mem: TimerFn;
 
     private runner!: RunnerFn;
     private runnerAsync!: AsyncRunnerFn;
 
-    private active!: boolean;
+    private active: boolean;
     private entries: ProfilerEntry[] = [];
 
     private detectEnv () : Env {
@@ -42,22 +43,19 @@ export class NanoProfiler {
         return 'unknown';
     }
 
-    private setupTimers () : void {
+    private setupNow () : TimerFn {
         switch ( this.env ) {
-            case 'node':
-                this.now = () => Number( process.hrtime.bigint() ) * 1e-6;
-                this.mem = () => process.memoryUsage().heapUsed;
-                break;
+            case 'node': return () => Number( process.hrtime.bigint() ) * 1e-6;
+            case 'browser': return () => performance.now();
+            default: return () => Date.now();
+        }
+    }
 
-            case 'browser':
-                this.now = () => performance.now();
-                this.mem = () => ( performance as any ).memory?.usedJSHeapSize ?? 0;
-                break;
-
-            default:
-                this.now = () => Date.now();
-                this.mem = () => 0;
-                break;
+    private setupMem () : TimerFn {
+        switch ( this.env ) {
+            case 'node': return () => process.memoryUsage().heapUsed;
+            case 'browser': return () => ( performance as any ).memory?.usedJSHeapSize ?? 0;
+            default: return () => 0;
         }
     }
 
@@ -101,25 +99,24 @@ export class NanoProfiler {
         private readonly hooks?: ProfilerHooks
     ) {
         this.env = this.detectEnv();
-        this.setupTimers();
+        this.now = this.setupNow();
+        this.mem = this.setupMem();
 
-        this.enable();
+        this.active = this.enable();
     }
 
-    public enable () : void {
-        if ( this.active ) return;
-
+    public enable () : boolean {
         this.runner = this.runProfiled;
-        this.runnerAsync = this.runAsyncProfiled
-        this.active = true;
+        this.runnerAsync = this.runAsyncProfiled;
+
+        return this.active = true;
     }
 
-    public disable () : void {
-        if ( ! this.active ) return;
-
+    public disable () : boolean {
         this.runner = ( fn ) => fn();
         this.runnerAsync = ( fn ) => fn();
-        this.active = false;
+
+        return this.active = false;
     }
 
     public run< T > ( fn: () => T, label?: string, meta?: any ) : T {
