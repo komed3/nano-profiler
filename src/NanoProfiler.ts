@@ -1,3 +1,5 @@
+type Env = 'node' | 'browser' | 'unknown';
+
 export interface ProfilerOptions {}
 
 export interface ProfilerHooks {}
@@ -6,6 +8,11 @@ export type RunnerFn< T > = ( fn: () => T, label?: string, meta?: any ) => T;
 export type AsyncRunnerFn< T > = ( fn: () => Promise< T >, label?: string, meta?: any ) => Promise< T >;
 
 export class NanoProfiler {
+
+    private static env: Env;
+
+    private static now: () => number;
+    private static mem: () => number;
 
     private static globalInstance?: NanoProfiler;
 
