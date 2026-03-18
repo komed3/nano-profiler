@@ -17,46 +17,31 @@ export class NanoProfiler {
     private static globalInstance?: NanoProfiler;
 
     private static detectEnv () : void {
-        if ( typeof process !== 'undefined' && process.versions?.node ) this.env = 'node';
-        else if ( typeof performance !== 'undefined' ) this.env = 'browser';
-        else this.env = 'unknown';
+        if ( typeof process !== 'undefined' && process.versions?.node ) NanoProfiler.env = 'node';
+        else if ( typeof performance !== 'undefined' ) NanoProfiler.env = 'browser';
+        else NanoProfiler.env = 'unknown';
 
         NanoProfiler.setupTimers();
     }
 
-    private static setupTimers(): void {
-
-        switch (this.env) {
-
+    private static setupTimers () : void {
+        switch ( NanoProfiler.env ) {
             case 'node':
-
-                this.now = () => Number(process.hrtime.bigint()) * 1e-6
-
-                this.mem = () => process.memoryUsage().heapUsed
-
-                break
-
+                NanoProfiler.now = () => Number( process.hrtime.bigint() ) * 1e-6;
+                NanoProfiler.mem = () => process.memoryUsage().heapUsed;
+                break;
             case 'browser':
-
-                this.now = () => performance.now()
-
-                this.mem = () =>
-                    (performance as any).memory?.usedJSHeapSize ?? 0
-
-                break
-
+                NanoProfiler.now = () => performance.now();
+                NanoProfiler.mem = () => ( performance as any ).memory?.usedJSHeapSize ?? 0;
+                break;
             default:
-
-                this.now = () => Date.now()
-
-                this.mem = () => 0
-
+                NanoProfiler.now = () => Date.now();
+                NanoProfiler.mem = () => 0;
         }
-
     }
 
     public static global () : NanoProfiler {
-        return this.globalInstance ??= new NanoProfiler ();
+        return NanoProfiler.globalInstance ??= new NanoProfiler ();
     }
 
     private runner: RunnerFn< any >;
