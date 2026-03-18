@@ -4,8 +4,16 @@ export interface ProfilerOptions {}
 
 export interface ProfilerHooks {}
 
-export type RunnerFn< T > = ( fn: () => T, label?: string, meta?: any ) => T;
-export type AsyncRunnerFn< T > = ( fn: () => Promise< T >, label?: string, meta?: any ) => Promise< T >;
+export interface ProfilerEntry< T = any > {
+    label?: string;
+    time: number;
+    mem?: number;
+    res?: T;
+    meta?: any;
+}
+
+export type RunnerFn< T = any > = ( fn: () => T, label?: string, meta?: any ) => T;
+export type AsyncRunnerFn< T = any > = ( fn: () => Promise< T >, label?: string, meta?: any ) => Promise< T >;
 
 export class NanoProfiler {
 
@@ -20,10 +28,11 @@ export class NanoProfiler {
     private now!: () => number;
     private mem!: () => number;
 
-    private runner!: RunnerFn< any >;
-    private runnerAsync!: AsyncRunnerFn< any >;
+    private runner!: RunnerFn;
+    private runnerAsync!: AsyncRunnerFn;
 
     private active!: boolean;
+    private entries: ProfilerEntry[] = [];
 
     private detectEnv () : void {
         if ( typeof process !== 'undefined' && process.versions?.node ) this.env = 'node';
@@ -53,11 +62,13 @@ export class NanoProfiler {
     private runProfiled< T > ( fn: () => T, label?: string, meta?: any ) : T {
         const startTime = this.now();
         const startMem = this.mem();
-
         const res = fn();
 
-        const deltaTime = this.now() - startTime;
-        const deltaMem = this.mem() - startMem;
+        this.record(
+            this.now() - startTime,
+            this.mem() - startMem,
+            res, label, meta
+        );
 
         return res;
     }
@@ -65,11 +76,13 @@ export class NanoProfiler {
     private async runAsyncProfiled< T > ( fn: () => Promise< T >, label?: string, meta?: any ) : Promise< T > {
         const startTime = this.now();
         const startMem = this.mem();
-
         const res = await fn();
 
-        const deltaTime = this.now() - startTime;
-        const deltaMem = this.mem() - startMem;
+        this.record(
+            this.now() - startTime,
+            this.mem() - startMem,
+            res, label, meta
+        );
 
         return res;
     }
