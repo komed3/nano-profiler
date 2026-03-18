@@ -59,10 +59,14 @@ export class NanoProfiler {
 
     public enable () : void {
         if ( this.active ) return;
+
+        this.active = true;
     }
 
     public disable () : void {
         if ( ! this.active ) return;
+
+        this.active = false;
     }
 
     public run< T > ( fn: () => T, label?: string, meta?: any ) : T {
