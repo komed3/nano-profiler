@@ -25,7 +25,7 @@ export class NanoProfiler {
         return NanoProfiler.globalInstance ??= new NanoProfiler ();
     }
 
-    private env!: Env;
+    private readonly env: Env;
 
     private now!: () => number;
     private mem!: () => number;
@@ -36,10 +36,10 @@ export class NanoProfiler {
     private active!: boolean;
     private entries: ProfilerEntry[] = [];
 
-    private detectEnv () : void {
-        if ( typeof process !== 'undefined' && process.versions?.node ) this.env = 'node';
-        else if ( typeof performance !== 'undefined' ) this.env = 'browser';
-        else this.env = 'unknown';
+    private detectEnv () : Env {
+        if ( typeof process !== 'undefined' && process.versions?.node ) return 'node';
+        else if ( typeof performance !== 'undefined' ) return 'browser';
+        return 'unknown';
     }
 
     private setupTimers () : void {
@@ -100,7 +100,7 @@ export class NanoProfiler {
         private readonly options: ProfilerOptions = {},
         private readonly hooks?: ProfilerHooks
     ) {
-        this.detectEnv();
+        this.env = this.detectEnv();
         this.setupTimers();
 
         this.enable();
