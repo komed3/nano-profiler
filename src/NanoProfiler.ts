@@ -9,40 +9,16 @@ export type AsyncRunnerFn< T > = ( fn: () => Promise< T >, label?: string, meta?
 
 export class NanoProfiler {
 
-    private static env: Env;
-
-    private static now: () => number;
-    private static mem: () => number;
-
     private static globalInstance?: NanoProfiler;
-
-    private static detectEnv () : void {
-        if ( typeof process !== 'undefined' && process.versions?.node ) NanoProfiler.env = 'node';
-        else if ( typeof performance !== 'undefined' ) NanoProfiler.env = 'browser';
-        else NanoProfiler.env = 'unknown';
-
-        NanoProfiler.setupTimers();
-    }
-
-    private static setupTimers () : void {
-        switch ( NanoProfiler.env ) {
-            case 'node':
-                NanoProfiler.now = () => Number( process.hrtime.bigint() ) * 1e-6;
-                NanoProfiler.mem = () => process.memoryUsage().heapUsed;
-                break;
-            case 'browser':
-                NanoProfiler.now = () => performance.now();
-                NanoProfiler.mem = () => ( performance as any ).memory?.usedJSHeapSize ?? 0;
-                break;
-            default:
-                NanoProfiler.now = () => Date.now();
-                NanoProfiler.mem = () => 0;
-        }
-    }
 
     public static global () : NanoProfiler {
         return NanoProfiler.globalInstance ??= new NanoProfiler ();
     }
+
+    private env!: Env;
+
+    private now!: () => number;
+    private mem!: () => number;
 
     private runner!: RunnerFn< any >;
     private runnerAsync!: AsyncRunnerFn< any >;
@@ -53,8 +29,44 @@ export class NanoProfiler {
         private readonly options: ProfilerOptions = {},
         private readonly hooks?: ProfilerHooks
     ) {
-        if ( ! NanoProfiler.env ) NanoProfiler.detectEnv();
+        this.detectEnv();
+        this.setupTimers();
+
         this.enable();
+    }
+
+    private detectEnv () : void {
+        if ( typeof process !== 'undefined' && process.versions?.node ) this.env = 'node';
+        else if ( typeof performance !== 'undefined' ) this.env = 'browser';
+        else this.env = 'unknown';
+    }
+
+    private setupTimers () : void {
+        switch ( this.env ) {
+            case 'node':
+                this.now = () => Number( process.hrtime.bigint() ) * 1e-6;
+                this.mem = () => process.memoryUsage().heapUsed;
+                break;
+            case 'browser':
+                this.now = () => performance.now();
+                this.mem = () => ( performance as any ).memory?.usedJSHeapSize ?? 0;
+                break;
+            default:
+                this.now = () => Date.now();
+                this.mem = () => 0;
+        }
+    }
+
+    private runProfiled< T > ( fn: () => T, label?: string, meta?: any ) : T {
+        const startTime = this.now();
+        const startMem = this.mem();
+
+        const res = fn();
+
+        const deltaTime = this.now() - startTime;
+        const deltaMem = this.mem() - startMem;
+
+        return res;
     }
 
     public enable () : void {
