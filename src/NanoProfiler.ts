@@ -16,14 +16,20 @@ export class NanoProfiler {
     private runner: RunnerFn< any >;
     private runnerAsync: AsyncRunnerFn< any >;
 
+    private active: boolean = true;
+
     constructor (
         private readonly options: ProfilerOptions = {},
         private readonly hooks?: ProfilerHooks
     ) {}
 
-    public enable () : void {}
+    public enable () : void {
+        if ( this.active ) return;
+    }
 
-    public disable () : void {}
+    public disable () : void {
+        if ( ! this.active ) return;
+    }
 
     public run< T > ( fn: () => T, label?: string, meta?: any ) : T {
         return this.runner( fn, label, meta );
