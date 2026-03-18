@@ -44,8 +44,8 @@ export class NanoProfiler {
         return NanoProfiler.globalInstance ??= new NanoProfiler ();
     }
 
-    private runner: RunnerFn< any >;
-    private runnerAsync: AsyncRunnerFn< any >;
+    private runner!: RunnerFn< any >;
+    private runnerAsync!: AsyncRunnerFn< any >;
 
     private active!: boolean;
 
@@ -66,6 +66,8 @@ export class NanoProfiler {
     public disable () : void {
         if ( ! this.active ) return;
 
+        this.runner = ( fn ) => fn();
+        this.runnerAsync = ( fn ) => fn();
         this.active = false;
     }
 
