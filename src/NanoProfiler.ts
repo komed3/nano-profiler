@@ -3,7 +3,8 @@ export type Env = 'node' | 'browser' | 'unknown';
 export interface ProfilerOptions {}
 
 export interface ProfilerHooks {
-    onEntry?: ( entry: ProfilerEntry ) => void
+    onEntry?: ( entry: ProfilerEntry ) => void,
+    onFlush?: ( entry: ProfilerEntry[] ) => void
 }
 
 export interface ProfilerEntry< T = any > {
@@ -125,6 +126,14 @@ export class NanoProfiler {
 
     public async runAsync< T > ( fn: () => Promise< T >, label?: string, meta?: any ) : Promise< T > {
         return this.runnerAsync( fn, label, meta );
+    }
+
+    public flush () : ProfilerEntry[] {
+        const data = this.entries;
+        this.hooks?.onFlush?.( data );
+        this.entries.length = 0;
+
+        return data;
     }
 
 }
