@@ -20,6 +20,39 @@ export class NanoProfiler {
         if ( typeof process !== 'undefined' && process.versions?.node ) this.env = 'node';
         else if ( typeof performance !== 'undefined' ) this.env = 'browser';
         else this.env = 'unknown';
+
+        NanoProfiler.setupTimers();
+    }
+
+    private static setupTimers(): void {
+
+        switch (this.env) {
+
+            case 'node':
+
+                this.now = () => Number(process.hrtime.bigint()) * 1e-6
+
+                this.mem = () => process.memoryUsage().heapUsed
+
+                break
+
+            case 'browser':
+
+                this.now = () => performance.now()
+
+                this.mem = () =>
+                    (performance as any).memory?.usedJSHeapSize ?? 0
+
+                break
+
+            default:
+
+                this.now = () => Date.now()
+
+                this.mem = () => 0
+
+        }
+
     }
 
     public static global () : NanoProfiler {
