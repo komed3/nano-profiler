@@ -25,12 +25,12 @@ export class NanoProfiler {
 
     public disable () : void {}
 
-    public run< T > () : T {
-        return this.runner();
+    public run< T > ( fn: () => T, label?: string, meta?: any ) : T {
+        return this.runner( fn, label, meta );
     }
 
-    public runAsync< T > () : T {
-        return this.runnerAsync();
+    public runAsync< T > ( fn: () => Promise< T >, label?: string, meta?: any ) : Promise< T > {
+        return this.runnerAsync( fn, label, meta );
     }
 
 }
