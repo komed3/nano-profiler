@@ -64,7 +64,8 @@ export class NanoProfiler {
     private runnerAsync!: AsyncRunnerFn;
 
     private active: boolean;
-    private entries: ProfilerEntry[] = [];
+    private entries: ProfilerEntry[];
+    private index = 0;
     private tl = new Map< string, { time: number, mem: number | undefined } > ();
 
     private detectEnv () : Env {
@@ -90,14 +91,17 @@ export class NanoProfiler {
     }
 
     private record< T > ( time: number, mem: number | undefined, res: T, label?: string, meta?: any ) : void {
-        const entry: ProfilerEntry = { time };
+        if ( this.index >= this.maxEntries ) return;
 
-        if ( label ) entry.label = label;
-        if ( mem !== undefined ) entry.mem = mem;
-        if ( this.options.storeResults ) entry.res = res;
-        if ( meta ) entry.meta = meta;
+        const entry = this.entries[ this.index ] ?? ( this.entries[ this.index ] = {} as ProfilerEntry );
+        this.index++;
 
-        if ( this.entries.length < this.maxEntries ) this.entries.push( entry );
+        entry.time = time;
+        if ( label ) entry.label = label; else delete entry.label;
+        if ( mem !== undefined ) entry.mem = mem; else delete entry.mem;
+        if ( this.options.storeResults ) entry.res = res; else delete entry.res;
+        if ( meta ) entry.meta = meta; else delete entry.meta;
+
         this.hooks?.onEntry?.( entry );
     }
 
@@ -111,6 +115,7 @@ export class NanoProfiler {
     ) {
         this.options = options;
         this.maxEntries = options.maxEntries ?? 10_000;
+        this.entries = new Array ( this.maxEntries );
         this.hooks = hooks;
 
         this.env = this.detectEnv();
@@ -256,9 +261,9 @@ export class NanoProfiler {
     }
 
     public flush () : ProfilerEntry[] {
-        const data = this.entries;
+        const data = this.entries.slice( 0, this.index );
         this.hooks?.onFlush?.( data );
-        this.entries.length = 0;
+        this.index = 0;
 
         return data;
     }
