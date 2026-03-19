@@ -50,6 +50,8 @@ export class NanoProfiler {
         return NanoProfiler.globalInstance ??= new NanoProfiler ();
     }
 
+    private readonly options: ProfilerOptions;
+    private readonly hooks?: ProfilerHooks;
     private readonly env: Env;
 
     private now: TimerFn;
@@ -109,10 +111,10 @@ export class NanoProfiler {
         this.hooks?.onEntry?.( entry );
     }
 
-    constructor (
-        private readonly options: ProfilerOptions = { profileMem: false },
-        private readonly hooks?: ProfilerHooks
-    ) {
+    constructor ( options: ProfilerOptions = { profileMem: false }, hooks?: ProfilerHooks ) {
+        this.options = options;
+        this.hooks = hooks;
+
         this.env = this.detectEnv();
         this.now = this.setupNow();
         this.mem = this.setupMem();
