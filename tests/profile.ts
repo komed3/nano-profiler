@@ -1,6 +1,6 @@
 import { NanoProfiler } from '../src/NanoProfiler.ts';
 
-const profiler = new NanoProfiler ( undefined, {
+const profiler = new NanoProfiler ( { trackMem: true }, {
     onEntry ( entry ) { console.log( `Entry: ${ entry.label }, Time: ${ entry.time }ms, Mem: ${ entry.mem }MB` ) }
 } );
 
