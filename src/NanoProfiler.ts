@@ -37,6 +37,7 @@ export class NanoProfiler {
 
     private active: boolean;
     private entries: ProfilerEntry[] = [];
+    private tl = new Map< string, { time: number, mem: number } > ();
 
     private detectEnv () : Env {
         if ( typeof process !== 'undefined' && process.versions?.node ) return 'node';
@@ -124,6 +125,19 @@ export class NanoProfiler {
 
     public async runAsync< T > ( fn: () => Promise< T >, label?: string, meta?: any ) : Promise< T > {
         return this.runnerAsync( fn, label, meta );
+    }
+
+    public start ( label: string ) : void {
+        if ( this.tl.has( label ) ) throw new Error( `Label "${ label }" is already active` );
+        this.tl.set( label, { time: this.now(), mem: this.mem() } );
+    }
+
+    public end ( label: string ) : void {
+        const start = this.tl.get( label );
+        if ( ! start ) throw new Error( `Label "${ label }" is not active` );
+        this.tl.delete( label );
+
+        this.record( this.now() - start.time, this.mem() - start.mem, undefined, label );
     }
 
     public report () : ProfilerEntry[] {
