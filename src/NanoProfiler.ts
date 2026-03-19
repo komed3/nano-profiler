@@ -117,8 +117,8 @@ export class NanoProfiler {
         const entry: ProfilerEntry = { time };
 
         if ( label ) entry.label = label;
-        if ( mem ) entry.mem = mem;
-        if ( res && this.options.storeResults ) entry.res = res;
+        if ( mem !== undefined ) entry.mem = mem;
+        if ( this.options.storeResults ) entry.res = res;
         if ( meta ) entry.meta = meta;
 
         if ( this.entries.length < this.maxEntries ) this.entries.push( entry );
