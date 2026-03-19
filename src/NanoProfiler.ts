@@ -1,5 +1,10 @@
 export type Env = 'node' | 'browser' | 'unknown';
 
+export interface ProfilerOptions {
+    trackMem?: boolean;
+    storeResults?: boolean;
+}
+
 export interface ProfilerHooks {
     onEntry?: ( entry: ProfilerEntry ) => void,
     onFlush?: ( entry: ProfilerEntry[] ) => void
@@ -46,6 +51,7 @@ export class NanoProfiler {
         return NanoProfiler.globalInstance ??= new NanoProfiler ();
     }
 
+    private readonly options: ProfilerOptions;
     private readonly hooks?: ProfilerHooks;
     private readonly env: Env;
 
@@ -83,30 +89,42 @@ export class NanoProfiler {
 
     private runProfiled< T > ( fn: () => T, label?: string, meta?: any ) : T {
         const startTime = this.now();
-        const startMem = this.mem();
+        const startMem = this.options.trackMem ? this.mem() : undefined;
         let res = undefined;
 
-        try { return res = fn() }
-        finally { this.record( this.now() - startTime, this.mem() - startMem, res, label, meta ) }
+        try { return res = fn() } finally { this.record(
+            this.now() - startTime,
+            this.options.trackMem ? this.mem() - startMem! : undefined,
+            res, label, meta
+        ) }
     }
 
     private async runAsyncProfiled< T > ( fn: () => Promise< T >, label?: string, meta?: any ) : Promise< T > {
         const startTime = this.now();
-        const startMem = this.mem();
+        const startMem = this.options.trackMem ? this.mem() : undefined;
         let res = undefined;
 
-        try { return res = await fn() }
-        finally { this.record( this.now() - startTime, this.mem() - startMem, res, label, meta ) }
+        try { return res = await fn() } finally { this.record(
+            this.now() - startTime,
+            this.options.trackMem ? this.mem() - startMem! : undefined,
+            res, label, meta
+        ) }
     }
 
-    private record< T > ( time: number, mem: number, res: T, label?: string, meta?: any ) : void {
-        const entry: ProfilerEntry = { label, time, mem, res, meta };
+    private record< T > ( time: number, mem: number | undefined, res: T, label?: string, meta?: any ) : void {
+        const entry: ProfilerEntry = { time };
+
+        if ( label ) entry.label = label;
+        if ( mem ) entry.mem = mem;
+        if ( res && this.options.storeResults ) entry.res = res;
+        if ( meta ) entry.meta = meta;
 
         this.entries.push( entry );
         this.hooks?.onEntry?.( entry );
     }
 
-    constructor ( hooks?: ProfilerHooks ) {
+    constructor ( options: ProfilerOptions = { trackMem: false, storeResults: true }, hooks?: ProfilerHooks ) {
+        this.options = options;
         this.hooks = hooks;
 
         this.env = this.detectEnv();
