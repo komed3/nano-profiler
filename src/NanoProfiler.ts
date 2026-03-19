@@ -76,7 +76,7 @@ export class NanoProfiler {
 
     private setupNow () : TimerFn {
         switch ( this.env ) {
-            case 'node': return () => Number( process.hrtime.bigint() ) * 1e-6;
+            case 'node': return () => { const t = process.hrtime(); return t[ 0 ] * 1e3 + t[ 1 ] * 1e-6 }
             case 'browser': return () => performance.now();
             default: return () => Date.now();
         }
