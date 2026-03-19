@@ -33,6 +33,11 @@ export interface ProfilerSummary {
     };
 }
 
+export interface HistogramEntry {
+    bin: number;
+    count: number;
+}
+
 export type RunnerFn< T = any > = ( fn: () => T, label?: string, meta?: any ) => T;
 export type AsyncRunnerFn< T = any > = ( fn: () => Promise< T >, label?: string, meta?: any ) => Promise< T >;
 export type TimerFn = () => number;
@@ -202,6 +207,25 @@ export class NanoProfiler {
             ( max, entry ) => entry.time > max.time ? entry : max,
             entries[ 0 ]
         );
+    }
+
+    public histogram ( label?: string, bins: number = 10 ) : HistogramEntry[] {
+        const entries = this.report( label );
+        if ( entries.length === 0 ) return [];
+
+        const times = entries.map( e => e.time );
+        const min = Math.min( ...times );
+        const max = Math.max( ...times );
+        const binSize = ( max - min ) / bins;
+
+        const histogram = Array.from( { length: bins }, ( _, i ) => ( { bin: min + i * binSize, count: 0 } ) );
+
+        for ( const time of times ) {
+            const binIndex = Math.min( Math.floor( ( time - min ) / binSize ), bins - 1 );
+            histogram[ binIndex ].count++;
+        }
+
+        return histogram;
     }
 
     public flush () : ProfilerEntry[] {
