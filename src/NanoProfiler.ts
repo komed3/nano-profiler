@@ -77,10 +77,10 @@ export class NanoProfiler {
     }
 
     private setupMem () : TimerFn {
-        switch ( this.env ) {
+        switch ( this.options.profileMem ? this.env : false ) {
             case 'node': return () => process.memoryUsage().heapUsed;
             case 'browser': return () => ( performance as any ).memory?.usedJSHeapSize ?? 0;
-            default: return () => 0;
+            default: return () => -1;
         }
     }
 
@@ -115,9 +115,9 @@ export class NanoProfiler {
         return res;
     }
 
-    private record< T > ( time: number, mem: number | undefined, res: T, label?: string, meta?: any ) : void {
+    private record< T > ( time: number, mem: number, res: T, label?: string, meta?: any ) : void {
         const entry: ProfilerEntry = {
-            label, time, mem, meta,
+            label, time, mem: mem >= 0 ? mem : undefined, meta,
             res: this.options.storeResults ? res : undefined
         };
 
