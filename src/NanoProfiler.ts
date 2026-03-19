@@ -127,14 +127,13 @@ export class NanoProfiler {
 
     public enable () : boolean {
         const trackMem = this.options.trackMem;
-        const now = this.now, mem = this.mem;
-        const record = this.record.bind( this );
+        const self = this, now = this.now, mem = this.mem;
 
         this.runner = ( fn, label, meta ) => {
             const t0 = now(), m0 = trackMem ? mem() : undefined;
             let res;
 
-            try { return res = fn() } finally { record(
+            try { return res = fn() } finally { self.record(
                 now() - t0, trackMem ? mem() - m0! : undefined,
                 res, label, meta
             ) }
@@ -144,7 +143,7 @@ export class NanoProfiler {
             const t0 = now(), m0 = trackMem ? mem() : undefined;
             let res;
 
-            try { return res = await fn() } finally { record(
+            try { return res = await fn() } finally { self.record(
                 now() - t0, trackMem ? mem() - m0! : undefined,
                 res, label, meta
             ) }
