@@ -2,8 +2,6 @@ export type Env = 'node' | 'browser' | 'unknown';
 
 export interface ProfilerOptions {
     profileMem?: boolean;
-    storeResults?: boolean;
-    sampleRate?: number;
 }
 
 export interface ProfilerHooks {
@@ -55,12 +53,9 @@ export class NanoProfiler {
     private runner!: RunnerFn;
     private runnerAsync!: AsyncRunnerFn;
 
-    private readonly sampleRate: number;
-
     private active: boolean;
     private entries: ProfilerEntry[] = [];
     private tl = new Map< string, { time: number, mem: number } > ();
-    private hc = new Map< string, number > ();
 
     private detectEnv () : Env {
         if ( typeof process !== 'undefined' && process.versions?.node ) return 'node';
@@ -84,18 +79,7 @@ export class NanoProfiler {
         }
     }
 
-    private shouldProfiled ( label?: string ) : boolean {
-        if ( ! label ) return true;
-
-        const hc = this.hc.get( label ) ?? 0;
-        this.hc.set( label, hc + 1 );
-
-        return ( hc % this.sampleRate ) === 0;
-    }
-
     private runProfiled< T > ( fn: () => T, label?: string, meta?: any ) : T {
-        if ( ! this.shouldProfiled() ) return fn();
-
         const startTime = this.now();
         const startMem = this.mem();
         const res = fn();
@@ -105,8 +89,6 @@ export class NanoProfiler {
     }
 
     private async runAsyncProfiled< T > ( fn: () => Promise< T >, label?: string, meta?: any ) : Promise< T > {
-        if ( ! this.shouldProfiled() ) return fn();
-
         const startTime = this.now();
         const startMem = this.mem();
         const res = await fn();
@@ -116,30 +98,19 @@ export class NanoProfiler {
     }
 
     private record< T > ( time: number, mem: number, res: T, label?: string, meta?: any ) : void {
-        const entry: ProfilerEntry = {
-            label, time, mem: mem >= 0 ? mem : undefined, meta,
-            res: this.options.storeResults ? res : undefined
-        };
+        const entry: ProfilerEntry = { label, time, mem: mem >= 0 ? mem : undefined, res, meta };
 
         this.entries.push( entry );
         this.hooks?.onEntry?.( entry );
     }
 
     constructor (
-        private readonly options: ProfilerOptions = {
-            profileMem: false, storeResults: true, sampleRate: 1
-        },
+        private readonly options: ProfilerOptions = { profileMem: false },
         private readonly hooks?: ProfilerHooks
     ) {
         this.env = this.detectEnv();
         this.now = this.setupNow();
         this.mem = this.setupMem();
-
-        this.sampleRate = this.options.sampleRate
-            ? this.options.sampleRate > 1
-                ? this.options.sampleRate
-                : 1 / this.options.sampleRate
-            : 1;
 
         this.active = this.enable();
     }
