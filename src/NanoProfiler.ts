@@ -89,30 +89,6 @@ export class NanoProfiler {
         }
     }
 
-    private runProfiled< T > ( fn: () => T, label?: string, meta?: any ) : T {
-        const startTime = this.now();
-        const startMem = this.options.trackMem ? this.mem() : undefined;
-        let res = undefined;
-
-        try { return res = fn() } finally { this.record(
-            this.now() - startTime,
-            this.options.trackMem ? this.mem() - startMem! : undefined,
-            res, label, meta
-        ) }
-    }
-
-    private async runAsyncProfiled< T > ( fn: () => Promise< T >, label?: string, meta?: any ) : Promise< T > {
-        const startTime = this.now();
-        const startMem = this.options.trackMem ? this.mem() : undefined;
-        let res = undefined;
-
-        try { return res = await fn() } finally { this.record(
-            this.now() - startTime,
-            this.options.trackMem ? this.mem() - startMem! : undefined,
-            res, label, meta
-        ) }
-    }
-
     private record< T > ( time: number, mem: number | undefined, res: T, label?: string, meta?: any ) : void {
         const entry: ProfilerEntry = { time };
 
@@ -145,8 +121,29 @@ export class NanoProfiler {
     }
 
     public enable () : boolean {
-        this.runner = this.runProfiled.bind( this );
-        this.runnerAsync = this.runAsyncProfiled.bind( this );
+        const trackMem = this.options.trackMem;
+        const now = this.now, mem = this.mem;
+        const record = this.record.bind( this );
+
+        this.runner = ( fn, label, meta ) => {
+            const t0 = now(), m0 = trackMem ? mem() : undefined;
+            let res;
+
+            try { return res = fn() } finally { record(
+                now() - t0, trackMem ? mem() - m0! : undefined,
+                res, label, meta
+            ) }
+        };
+
+        this.runnerAsync = async ( fn, label, meta ) => {
+            const t0 = now(), m0 = trackMem ? mem() : undefined;
+            let res;
+
+            try { return res = await fn() } finally { record(
+                now() - t0, trackMem ? mem() - m0! : undefined,
+                res, label, meta
+            ) }
+        };
 
         return this.active = true;
     }
