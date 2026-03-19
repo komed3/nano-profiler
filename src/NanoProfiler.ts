@@ -117,8 +117,8 @@ export class NanoProfiler {
     }
 
     public enable () : boolean {
-        this.runner = this.runProfiled;
-        this.runnerAsync = this.runAsyncProfiled;
+        this.runner = this.runProfiled.bind( this );
+        this.runnerAsync = this.runAsyncProfiled.bind( this );
 
         return this.active = true;
     }
