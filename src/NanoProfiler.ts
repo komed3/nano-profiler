@@ -1,9 +1,5 @@
 export type Env = 'node' | 'browser' | 'unknown';
 
-export interface ProfilerOptions {
-    profileMem?: boolean;
-}
-
 export interface ProfilerHooks {
     onEntry?: ( entry: ProfilerEntry ) => void,
     onFlush?: ( entry: ProfilerEntry[] ) => void
@@ -50,7 +46,6 @@ export class NanoProfiler {
         return NanoProfiler.globalInstance ??= new NanoProfiler ();
     }
 
-    private readonly options: ProfilerOptions;
     private readonly hooks?: ProfilerHooks;
     private readonly env: Env;
 
@@ -79,10 +74,10 @@ export class NanoProfiler {
     }
 
     private setupMem () : TimerFn {
-        switch ( this.options.profileMem ? this.env : false ) {
+        switch ( this.env ) {
             case 'node': return () => process.memoryUsage().heapUsed;
             case 'browser': return () => ( performance as any ).memory?.usedJSHeapSize ?? 0;
-            default: return () => -1;
+            default: return () => 0;
         }
     }
 
@@ -105,14 +100,13 @@ export class NanoProfiler {
     }
 
     private record< T > ( time: number, mem: number, res: T, label?: string, meta?: any ) : void {
-        const entry: ProfilerEntry = { label, time, mem: mem >= 0 ? mem : undefined, res, meta };
+        const entry: ProfilerEntry = { label, time, mem, res, meta };
 
         this.entries.push( entry );
         this.hooks?.onEntry?.( entry );
     }
 
-    constructor ( options: ProfilerOptions = { profileMem: false }, hooks?: ProfilerHooks ) {
-        this.options = options;
+    constructor ( hooks?: ProfilerHooks ) {
         this.hooks = hooks;
 
         this.env = this.detectEnv();

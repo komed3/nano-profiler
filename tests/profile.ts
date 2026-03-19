@@ -1,6 +1,8 @@
 import { NanoProfiler } from '../src/NanoProfiler.ts';
 
-const profiler = NanoProfiler.global();
+const profiler = new NanoProfiler ( {
+    onEntry ( entry ) { console.log( `Entry: ${ entry.label }, Time: ${ entry.time }ms, Mem: ${ entry.mem }MB` ) }
+} );
 
 const workload_1 = () => { for ( let i = 0; i < 1e6; i++ ) Math.sqrt( i ) };
 const workload_2 = () => { for ( let i = 0; i < 1e6; i++ ) Math.log( i + 1 ) };
