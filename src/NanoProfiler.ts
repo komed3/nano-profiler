@@ -15,6 +15,22 @@ export interface ProfilerEntry< T = any > {
     meta?: any;
 }
 
+export interface ProfilerSummary {
+    count: number;
+    time: {
+        total: number;
+        max: number;
+        min: number;
+        avg: number;
+    };
+    mem?: {
+        total: number;
+        max: number;
+        min: number;
+        avg: number;
+    };
+}
+
 export type RunnerFn< T = any > = ( fn: () => T, label?: string, meta?: any ) => T;
 export type AsyncRunnerFn< T = any > = ( fn: () => Promise< T >, label?: string, meta?: any ) => Promise< T >;
 export type TimerFn = () => number;
@@ -142,6 +158,38 @@ export class NanoProfiler {
 
     public report ( label?: string ) : ProfilerEntry[] {
         return label ? this.entries.filter( e => e.label === label ) : [ ...this.entries ];
+    }
+
+    public summary ( label?: string ) : ProfilerSummary {
+        const entries = this.report( label );
+        const count = entries.length;
+
+        let tTotal = 0, tMax = 0, tMin = Infinity,
+            mTotal = 0, mMax = 0, mMin = Infinity;
+
+        for ( const e of entries ) {
+            tTotal += e.time;
+            tMax = Math.max( tMax, e.time );
+            tMin = Math.min( tMin, e.time );
+
+            mTotal += e.mem ?? 0;
+            mMax = Math.max( mMax, e.mem ?? 0 );
+            mMin = Math.min( mMin, e.mem ?? Infinity );
+        }
+
+        const summary: ProfilerSummary = { count, time: {
+            total: tTotal, max: tMax,
+            min: tMin === Infinity ? 0 : tMin,
+            avg: count > 0 ? tTotal / count : 0
+        } };
+
+        if ( mTotal > 0 ) summary.mem = {
+            total: mTotal, max: mMax,
+            min: mMin === Infinity ? 0 : mMin,
+            avg: count > 0 ? mTotal / count : 0
+        };
+
+        return summary;
     }
 
     public hotspot ( label?: string ) : ProfilerEntry | undefined {
