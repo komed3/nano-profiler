@@ -20,7 +20,7 @@ export interface ProfilerEntry< T = any > {
 }
 
 export interface ProfilerSummary {
-    count: number;
+    calls: number;
     time: {
         total: number;
         max: number;
@@ -193,7 +193,7 @@ export class NanoProfiler {
 
     public summary ( label?: string ) : ProfilerSummary {
         const entries = this.report( label );
-        const count = entries.length;
+        const calls = entries.length;
 
         let tTotal = 0, tMax = 0, tMin = Infinity,
             mTotal = 0, mMax = 0, mMin = Infinity;
@@ -208,16 +208,16 @@ export class NanoProfiler {
             mMin = Math.min( mMin, e.mem ?? Infinity );
         }
 
-        const summary: ProfilerSummary = { count, time: {
+        const summary: ProfilerSummary = { calls, time: {
             total: tTotal, max: tMax,
             min: tMin === Infinity ? 0 : tMin,
-            avg: count > 0 ? tTotal / count : 0
+            avg: calls > 0 ? tTotal / calls : 0
         } };
 
         if ( mTotal > 0 ) summary.mem = {
             total: mTotal, max: mMax,
             min: mMin === Infinity ? 0 : mMin,
-            avg: count > 0 ? mTotal / count : 0
+            avg: calls > 0 ? mTotal / calls : 0
         };
 
         return summary;
