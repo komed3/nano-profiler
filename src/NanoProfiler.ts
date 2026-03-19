@@ -1,6 +1,7 @@
 export type Env = 'node' | 'browser' | 'unknown';
 
 export interface ProfilerOptions {
+    profileMem?: boolean;
     storeResults?: boolean;
     sampleRate?: number;
 }
