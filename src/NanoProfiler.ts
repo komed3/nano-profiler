@@ -3,6 +3,7 @@ export type Env = 'node' | 'browser' | 'unknown';
 export interface ProfilerOptions {
     trackMem?: boolean;
     storeResults?: boolean;
+    maxEntries?: number;
 }
 
 export interface ProfilerHooks {
@@ -52,6 +53,7 @@ export class NanoProfiler {
     }
 
     private readonly options: ProfilerOptions;
+    private readonly maxEntries: number;
     private readonly hooks?: ProfilerHooks;
     private readonly env: Env;
 
@@ -119,12 +121,20 @@ export class NanoProfiler {
         if ( res && this.options.storeResults ) entry.res = res;
         if ( meta ) entry.meta = meta;
 
-        this.entries.push( entry );
+        if ( this.entries.length < this.maxEntries ) this.entries.push( entry );
         this.hooks?.onEntry?.( entry );
     }
 
-    constructor ( options: ProfilerOptions = { trackMem: false, storeResults: true }, hooks?: ProfilerHooks ) {
+    constructor (
+        options: ProfilerOptions = {
+            trackMem: false,
+            storeResults: false,
+            maxEntries: 10_000
+        },
+        hooks?: ProfilerHooks
+    ) {
         this.options = options;
+        this.maxEntries = options.maxEntries ?? 10_000;
         this.hooks = hooks;
 
         this.env = this.detectEnv();
