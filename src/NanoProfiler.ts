@@ -140,8 +140,8 @@ export class NanoProfiler {
         this.record( this.now() - start.time, this.mem() - start.mem, undefined, label );
     }
 
-    public report () : ProfilerEntry[] {
-        return [ ...this.entries ];
+    public report ( label?: string ) : ProfilerEntry[] {
+        return label ? this.entries.filter( e => e.label === label ) : [ ...this.entries ];
     }
 
     public flush () : ProfilerEntry[] {
