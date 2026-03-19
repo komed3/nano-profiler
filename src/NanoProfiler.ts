@@ -37,7 +37,7 @@ export interface ProfilerSummary {
 
 export interface HistogramEntry {
     bin: number;
-    count: number;
+    calls: number;
 }
 
 export type RunnerFn< T = any > = ( fn: () => T, label?: string, meta?: any ) => T;
@@ -242,11 +242,11 @@ export class NanoProfiler {
         const max = Math.max( ...times );
         const binSize = ( max - min ) / bins;
 
-        const histogram = Array.from( { length: bins }, ( _, i ) => ( { bin: min + i * binSize, count: 0 } ) );
+        const histogram = Array.from( { length: bins }, ( _, i ) => ( { bin: min + i * binSize, calls: 0 } ) );
 
         for ( const time of times ) {
             const binIndex = Math.min( Math.floor( ( time - min ) / binSize ), bins - 1 );
-            histogram[ binIndex ].count++;
+            histogram[ binIndex ].calls++;
         }
 
         return histogram;
