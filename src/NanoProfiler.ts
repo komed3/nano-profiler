@@ -144,6 +144,16 @@ export class NanoProfiler {
         return label ? this.entries.filter( e => e.label === label ) : [ ...this.entries ];
     }
 
+    public hotspot ( label?: string ) : ProfilerEntry | undefined {
+        const entries = this.report( label );
+        if ( entries.length === 0 ) return undefined;
+
+        return entries.reduce(
+            ( max, entry ) => entry.time > max.time ? entry : max,
+            entries[ 0 ]
+        );
+    }
+
     public flush () : ProfilerEntry[] {
         const data = this.entries;
         this.hooks?.onFlush?.( data );
