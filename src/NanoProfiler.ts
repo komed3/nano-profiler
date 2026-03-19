@@ -84,19 +84,19 @@ export class NanoProfiler {
     private runProfiled< T > ( fn: () => T, label?: string, meta?: any ) : T {
         const startTime = this.now();
         const startMem = this.mem();
-        const res = fn();
+        let res = undefined;
 
-        this.record( this.now() - startTime, this.mem() - startMem, res, label, meta );
-        return res;
+        try { return res = fn() }
+        finally { this.record( this.now() - startTime, this.mem() - startMem, res, label, meta ) }
     }
 
     private async runAsyncProfiled< T > ( fn: () => Promise< T >, label?: string, meta?: any ) : Promise< T > {
         const startTime = this.now();
         const startMem = this.mem();
-        const res = await fn();
+        let res = undefined;
 
-        this.record( this.now() - startTime, this.mem() - startMem, res, label, meta );
-        return res;
+        try { return res = await fn() }
+        finally { this.record( this.now() - startTime, this.mem() - startMem, res, label, meta ) }
     }
 
     private record< T > ( time: number, mem: number, res: T, label?: string, meta?: any ) : void {
