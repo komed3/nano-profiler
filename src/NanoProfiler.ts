@@ -1,6 +1,9 @@
 export type Env = 'node' | 'browser' | 'unknown';
 
-export interface ProfilerOptions {}
+export interface ProfilerOptions {
+    storeResults?: boolean;
+    sampleRate?: number;
+}
 
 export interface ProfilerHooks {
     onEntry?: ( entry: ProfilerEntry ) => void,
