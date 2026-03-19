@@ -55,9 +55,12 @@ export class NanoProfiler {
     private runner!: RunnerFn;
     private runnerAsync!: AsyncRunnerFn;
 
+    private readonly sampleRate: number;
+
     private active: boolean;
     private entries: ProfilerEntry[] = [];
     private tl = new Map< string, { time: number, mem: number } > ();
+    private hc = new Map< string, number > ();
 
     private detectEnv () : Env {
         if ( typeof process !== 'undefined' && process.versions?.node ) return 'node';
@@ -81,7 +84,18 @@ export class NanoProfiler {
         }
     }
 
+    private shouldProfiled ( label?: string ) : boolean {
+        if ( ! label ) return true;
+
+        const hc = this.hc.get( label ) ?? 0;
+        this.hc.set( label, hc + 1 );
+
+        return ( hc % this.sampleRate ) === 0;
+    }
+
     private runProfiled< T > ( fn: () => T, label?: string, meta?: any ) : T {
+        if ( ! this.shouldProfiled() ) return fn();
+
         const startTime = this.now();
         const startMem = this.mem();
         const res = fn();
@@ -91,6 +105,8 @@ export class NanoProfiler {
     }
 
     private async runAsyncProfiled< T > ( fn: () => Promise< T >, label?: string, meta?: any ) : Promise< T > {
+        if ( ! this.shouldProfiled() ) return fn();
+
         const startTime = this.now();
         const startMem = this.mem();
         const res = await fn();
@@ -118,6 +134,12 @@ export class NanoProfiler {
         this.env = this.detectEnv();
         this.now = this.setupNow();
         this.mem = this.setupMem();
+
+        this.sampleRate = this.options.sampleRate
+            ? this.options.sampleRate > 1
+                ? this.options.sampleRate
+                : 1 / this.options.sampleRate
+            : 1;
 
         this.active = this.enable();
     }
