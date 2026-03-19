@@ -100,14 +100,19 @@ export class NanoProfiler {
     }
 
     private record< T > ( time: number, mem: number | undefined, res: T, label?: string, meta?: any ) : void {
-        const entry: ProfilerEntry = { label, time, mem, res, meta };
+        const entry: ProfilerEntry = {
+            label, time, mem, meta,
+            res: this.options.storeResults ? res : undefined
+        };
 
         this.entries.push( entry );
         this.hooks?.onEntry?.( entry );
     }
 
     constructor (
-        private readonly options: ProfilerOptions = {},
+        private readonly options: ProfilerOptions = {
+            profileMem: false, storeResults: true, sampleRate: 1
+        },
         private readonly hooks?: ProfilerHooks
     ) {
         this.env = this.detectEnv();
