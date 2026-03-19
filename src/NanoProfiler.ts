@@ -65,7 +65,7 @@ export class NanoProfiler {
 
     private active: boolean;
     private entries: ProfilerEntry[] = [];
-    private tl = new Map< string, { time: number, mem: number } > ();
+    private tl = new Map< string, { time: number, mem: number | undefined } > ();
 
     private detectEnv () : Env {
         if ( typeof process !== 'undefined' && process.versions?.node ) return 'node';
@@ -173,7 +173,7 @@ export class NanoProfiler {
 
     public start ( label: string ) : void {
         if ( this.tl.has( label ) ) throw new Error( `Label "${ label }" is already active` );
-        this.tl.set( label, { time: this.now(), mem: this.mem() } );
+        this.tl.set( label, { time: this.now(), mem: this.options.trackMem ? this.mem() : undefined } );
     }
 
     public end ( label: string ) : void {
@@ -181,7 +181,11 @@ export class NanoProfiler {
         if ( ! start ) throw new Error( `Label "${ label }" is not active` );
         this.tl.delete( label );
 
-        this.record( this.now() - start.time, this.mem() - start.mem, undefined, label );
+        this.record(
+            this.now() - start.time,
+            this.options.trackMem ? this.mem() - start.mem! : undefined,
+            undefined, label
+        );
     }
 
     public report ( label?: string ) : ProfilerEntry[] {
@@ -239,7 +243,9 @@ export class NanoProfiler {
         const max = Math.max( ...times );
         const binSize = ( max - min ) / bins;
 
-        const histogram = Array.from( { length: bins }, ( _, i ) => ( { bin: min + i * binSize, calls: 0 } ) );
+        const histogram = Array.from( { length: bins }, ( _, i ) => (
+            { bin: min + i * binSize, calls: 0 }
+        ) );
 
         for ( const time of times ) {
             const binIndex = Math.min( Math.floor( ( time - min ) / binSize ), bins - 1 );
