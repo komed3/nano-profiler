@@ -97,10 +97,10 @@ export class NanoProfiler {
         this.index++;
 
         entry.time = time;
-        if ( label ) entry.label = label; else delete entry.label;
-        if ( mem !== undefined ) entry.mem = mem; else delete entry.mem;
-        if ( this.options.storeResults ) entry.res = res; else delete entry.res;
-        if ( meta ) entry.meta = meta; else delete entry.meta;
+        entry.label = label;
+        entry.mem = mem;
+        entry.res = this.options.storeResults ? res : undefined;
+        entry.meta = meta;
 
         this.hooks?.onEntry?.( entry );
     }
