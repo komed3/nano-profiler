@@ -194,10 +194,9 @@ export class NanoProfiler {
 
     public report ( label?: string ) : ProfilerEntry[] {
         const { entries, index } = this;
-
         if ( ! label ) return entries.slice( 0, index );
-        const result: ProfilerEntry[] = [];
 
+        const result: ProfilerEntry[] = [];
         for ( let i = 0; i < index; i++ ) {
             const e = entries[ i ];
             if ( e.label === label ) result.push( e );
@@ -244,10 +243,10 @@ export class NanoProfiler {
         const entries = this.report( label );
         if ( entries.length === 0 ) return undefined;
 
-        return entries.reduce(
-            ( max, entry ) => entry.time > max.time ? entry : max,
-            entries[ 0 ]
-        );
+        let max: ProfilerEntry | undefined;
+        for ( const e of entries ) if ( ! max || e.time > max.time ) max = e;
+
+        return max;
     }
 
     public histogram ( label?: string, bins: number = 10 ) : HistogramEntry[] {
