@@ -63,6 +63,12 @@ export interface HistogramEntry {
     calls: number;
 }
 
+/** Percentile entry representing a specific percentile and its corresponding time. */
+export interface PercentileEntry {
+    percentile: number;
+    time: number;
+}
+
 /** Function type for running profiled code. */
 export type RunnerFn< T = any > = ( fn: () => T, label?: string, meta?: any ) => T;
 export type AsyncRunnerFn< T = any > = ( fn: () => Promise< T >, label?: string, meta?: any ) => Promise< T >;
@@ -86,7 +92,7 @@ export class NanoProfiler {
         return NanoProfiler.globalInstance ??= new NanoProfiler ();
     }
 
-    /** Internal state and configuration */
+    /** Internal state and configuration. */
     private readonly options: ProfilerOptions;
     private readonly maxEntries: number;
     private readonly hooks?: ProfilerHooks;
@@ -190,15 +196,15 @@ export class NanoProfiler {
         this.maxEntries = options.maxEntries ?? 10_000;
         this.hooks = hooks;
 
-        // Detect the environment and set up the appropriate timer and memory functions
+        // Detect the environment and set up the appropriate timer and memory functions.
         this.env = this.detectEnv();
         this.now = this.setupNow();
         this.mem = this.setupMem();
 
-        // Initialize the entries array
+        // Initialize the entries array.
         this.entries = new Array ( this.maxEntries );
 
-        // Enable the profiler if the 'enabled' option is set to true
+        // Enable the profiler if the 'enabled' option is set to true.
         this.active = options.enabled ? this.enable() : this.disable();
     }
 
@@ -216,7 +222,7 @@ export class NanoProfiler {
         const trackMem = this.options.trackMem;
         const self = this, now = this.now, mem = this.mem;
 
-        // Set up the runner functions
+        // Set up the runner functions.
         this.runner = ( fn, label, meta ) => {
             const t0 = now(), m0 = trackMem ? mem() : undefined;
             let res;
@@ -227,7 +233,7 @@ export class NanoProfiler {
             ) }
         };
 
-        // Set up the asynchronous runner function
+        // Set up the asynchronous runner function.
         this.runnerAsync = async ( fn, label, meta ) => {
             const t0 = now(), m0 = trackMem ? mem() : undefined;
             let res;
@@ -275,8 +281,8 @@ export class NanoProfiler {
      * Runs the provided function while recording profiling data, using the configured runner function.
      * 
      * @param {() => T} fn - The function to execute and profile.
-     * @param {string} [label] - An optional label to associate with the profiling entry for this function execution.
-     * @param {any} [meta] - Optional metadata to associate with the profiling entry for this function execution.
+     * @param {string} [label] - An optional label to associate with the profiling entry.
+     * @param {any} [meta] - Optional metadata to associate with the profiling entry.
      * @returns {T} The result of the executed function.
      */
     public run< T > ( fn: () => T, label?: string, meta?: any ) : T {
@@ -288,8 +294,8 @@ export class NanoProfiler {
      * using the configured asynchronous runner function.
      * 
      * @param {() => Promise<T>} fn - The asynchronous function to execute and profile.
-     * @param {string} [label] - An optional label to associate with the profiling entry for this function execution.
-     * @param {any} [meta] - Optional metadata to associate with the profiling entry for this function execution.
+     * @param {string} [label] - Optional label to associate with the profiling entry.
+     * @param {any} [meta] - Optional metadata to associate with the profiling entry.
      * @returns {Promise<T>} A promise that resolves to the result of the executed asynchronous function.
      */
     public async runAsync< T > ( fn: () => Promise< T >, label?: string, meta?: any ) : Promise< T > {
@@ -350,7 +356,7 @@ export class NanoProfiler {
      * Calculates total, maximum, minimum, and average time (and memory usage if tracking
      * is enabled) for the profiling entries that match the specified label.
      * 
-     * @param {string} [label] - An optional label to filter the profiling entries for the summary.
+     * @param {string} [label] - An optional label to filter the profiling entries.
      * @returns {ProfilerSummary} A summary object containing aggregated profiling data.
      */
     public summary ( label?: string ) : ProfilerSummary {
@@ -390,9 +396,10 @@ export class NanoProfiler {
     }
 
     /**
-     * Identifies the profiling entry with the longest execution time, optionally filtered by a specific label.
+     * Identifies the profiling entry with the longest execution time,
+     * optionally filtered by a specific label.
      * 
-     * @param {string} [label] - An optional label to filter the profiling entries for hotspot analysis.
+     * @param {string} [label] - An optional label to filter the profiling entries.
      * @returns {ProfilerEntry | undefined} The profiling entry with the longest execution time.
      */
     public hotspot ( label?: string ) : ProfilerEntry | undefined {
@@ -406,14 +413,16 @@ export class NanoProfiler {
     }
 
     /**
-     * Generates a histogram of execution times for profiling entries, optionally filtered by a specific label.
+     * Generates a histogram of execution times for profiling entries,
+     * optionally filtered by a specific label.
      * 
-     * Calculates the minimum and maximum execution times, divides the range into specified bins, and counts
-     * the number of entries that fall into each bin to create a histogram representation of the execution times.
+     * Calculates the minimum and maximum execution times, divides the range into
+     * specified bins, and counts the number of entries that fall into each bin to
+     * create a histogram representation of the execution times.
      * 
-     * @param {string} [label] - An optional label to filter the profiling entries for histogram generation.
+     * @param {string} [label] - An optional label to filter the profiling entries.
      * @param {number} [bins=10] - The number of bins to use for the histogram.
-     * @returns {HistogramEntry[]} An array of histogram entries representing the distribution of execution times.
+     * @returns {HistogramEntry[]} An array of histogram entries.
      */
     public histogram ( label?: string, bins: number = 10 ) : HistogramEntry[] {
         const entries = this.report( label );
@@ -443,6 +452,46 @@ export class NanoProfiler {
         }
 
         return histogram;
+    }
+
+    /**
+     * Calculates specific percentiles of execution times for profiling entries,
+     * optionally filtered by a specific label.
+     * 
+     * @param {string} [label] - An optional label to filter the profiling entries.
+     * @param {number[]} [ps=[50, 90, 95, 99]] - An array of percentiles to calculate.
+     * @returns {PercentileEntry[]} An array of objects representing the calculated percentiles.
+     */
+    public percentiles ( label?: string, ps: number[] = [ 50, 90, 95, 99 ] ) : PercentileEntry[] {
+        const entries = this.report( label );
+        const n = entries.length;
+        if ( n === 0 ) return [];
+
+        // Extract times into a separate array for sorting and percentile calculation.
+        const times = new Array< number >( n );
+        for ( let i = 0; i < n; i++ ) times[ i ] = entries[ i ].time;
+
+        // Sort the times to prepare for percentile calculation.
+        times.sort( ( a, b ) => a - b );
+
+        const result: PercentileEntry[] = new Array( ps.length );
+        for ( let i = 0; i < ps.length; i++ ) {
+            const p = ps[ i ];
+
+            // Clamp the percentile value to the range [0, 100].
+            const cp = p < 0 ? 0 : p > 100 ? 100 : p;
+
+            // Calculate the index for the percentile using linear interpolation.
+            const idx = ( cp / 100 ) * ( n - 1 );
+            const lo = idx | 0;
+            const hi = Math.ceil( idx );
+
+            // Calculate the time for the percentile using linear interpolation between the two closest values.
+            const time = lo === hi ? times[ lo ] : times[ lo ] + ( times[ hi ] - times[ lo ] ) * ( idx - lo );
+            result[ i ] = { percentile: cp, time };
+        }
+
+        return result;
     }
 
     /**
