@@ -13,8 +13,6 @@
 
 'use strict';
 
-import { get } from 'node:http';
-
 
 /** Environment types for the NanoProfiler. */
 export type Env = 'node' | 'browser' | 'unknown';
@@ -226,10 +224,12 @@ export class NanoProfiler {
         if ( this.active ) return true;
 
         const trackMem = this.options.trackMem;
+        const sampleRate = this.sampleRate;
         const self = this, now = this.now, mem = this.mem;
 
         // Set up the runner functions.
         this.runner = ( fn, label, meta ) => {
+            if ( sampleRate < 1 && Math.random() >= sampleRate ) return fn();
             const t0 = now(), m0 = trackMem ? mem() : undefined;
             let res;
 
@@ -241,6 +241,7 @@ export class NanoProfiler {
 
         // Set up the asynchronous runner function.
         this.runnerAsync = async ( fn, label, meta ) => {
+            if ( sampleRate < 1 && Math.random() >= sampleRate ) return await fn();
             const t0 = now(), m0 = trackMem ? mem() : undefined;
             let res;
 
@@ -501,7 +502,7 @@ export class NanoProfiler {
             const lo = idx | 0;
             const hi = Math.ceil( idx );
 
-            // Calculate the time for the percentile using linear interpolation between the two closest values.
+            // Calculate the time for the percentile using linear interpolation.
             const time = lo === hi ? times[ lo ] : times[ lo ] + ( times[ hi ] - times[ lo ] ) * ( idx - lo );
             result[ i ] = { percentile: cp, time };
         }
