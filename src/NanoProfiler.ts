@@ -294,7 +294,7 @@ export class NanoProfiler {
      * @returns {number} The number of logged profiling entries.
      */
     public getEntryCount () : number {
-        return this.index + 1;
+        return this.index;
     }
 
     /**
