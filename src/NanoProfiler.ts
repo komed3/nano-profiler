@@ -68,12 +68,22 @@ export class NanoProfiler {
     private index = 0;
     private tl = new Map< string, { time: number, mem: number | undefined } > ();
 
+    /**
+     * Detects the current environment (Node.js, browser, or unknown).
+     * 
+     * @returns {Env} The detected environment.
+     */
     private detectEnv () : Env {
         if ( typeof process !== 'undefined' && process.versions?.node ) return 'node';
         else if ( typeof performance !== 'undefined' ) return 'browser';
         return 'unknown';
     }
 
+    /**
+     * Sets up the appropriate timer function based on the detected environment.
+     * 
+     * @returns {TimerFn} A function that returns the current time in milliseconds.
+     */
     private setupNow () : TimerFn {
         switch ( this.env ) {
             case 'node': return () => { const t = process.hrtime(); return t[ 0 ] * 1e3 + t[ 1 ] * 1e-6 }
@@ -82,6 +92,11 @@ export class NanoProfiler {
         }
     }
 
+    /**
+     * Sets up the appropriate memory usage function based on the detected environment.
+     * 
+     * @returns {TimerFn} A function that returns the current memory usage in bytes.
+     */
     private setupMem () : TimerFn {
         switch ( this.env ) {
             case 'node': return () => process.memoryUsage().heapUsed;
