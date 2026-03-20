@@ -1,5 +1,20 @@
+/**
+ * NanoProfiler is a lightweight and efficient profiling library for JavaScript and TypeScript.
+ * 
+ * It provides functionality to measure execution time and memory usage of code blocks,
+ * with support for both synchronous and asynchronous functions.
+ * 
+ * The profiler is designed to work in both Node.js and browser environments, automatically
+ * detecting the environment and using appropriate timing and memory measurement functions.
+ * 
+ * @author Paul Köhler
+ * @license MIT
+ */
+
+/** Environment types for the NanoProfiler. */
 export type Env = 'node' | 'browser' | 'unknown';
 
+/** Configuration options for the NanoProfiler. */
 export interface ProfilerOptions {
     enabled?: boolean;
     trackMem?: boolean;
@@ -7,11 +22,13 @@ export interface ProfilerOptions {
     maxEntries?: number;
 }
 
+/** Hooks for custom behavior on entry recording and flushing. */
 export interface ProfilerHooks {
     onEntry?: ( entry: ProfilerEntry ) => void,
     onFlush?: ( entry: ProfilerEntry[] ) => void
 }
 
+/** A profiling entry representing a single measurement of execution time and memory usage. */
 export interface ProfilerEntry< T = any > {
     label?: string;
     time: number;
@@ -20,6 +37,7 @@ export interface ProfilerEntry< T = any > {
     meta?: any;
 }
 
+/** A summary of profiling data, including total, maximum, minimum, and average time and memory usage. */
 export interface ProfilerSummary {
     calls: number;
     time: {
@@ -36,13 +54,17 @@ export interface ProfilerSummary {
     };
 }
 
+/** An entry in the histogram representing a range of execution times and the number of calls that fall into that range. */
 export interface HistogramEntry {
     bin: number;
     calls: number;
 }
 
+/** Function type for running profiled code. */
 export type RunnerFn< T = any > = ( fn: () => T, label?: string, meta?: any ) => T;
 export type AsyncRunnerFn< T = any > = ( fn: () => Promise< T >, label?: string, meta?: any ) => Promise< T >;
+
+/** Function type for timer functions that return the current time or memory usage. */
 export type TimerFn = () => number;
 
 export class NanoProfiler {
