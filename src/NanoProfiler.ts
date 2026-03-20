@@ -253,18 +253,26 @@ export class NanoProfiler {
         const entries = this.report( label );
         if ( entries.length === 0 ) return [];
 
-        const times = entries.map( e => e.time );
-        const min = Math.min( ...times );
-        const max = Math.max( ...times );
-        const binSize = ( max - min ) / bins;
+        let min = Infinity;
+        let max = -Infinity;
 
-        const histogram = Array.from( { length: bins }, ( _, i ) => (
-            { bin: min + i * binSize, calls: 0 }
-        ) );
+        for ( const e of entries ) {
+            const t = e.time;
+            if ( t < min ) min = t;
+            if ( t > max ) max = t;
+        }
 
-        for ( const time of times ) {
-            const binIndex = Math.min( Math.floor( ( time - min ) / binSize ), bins - 1 );
-            histogram[ binIndex ].calls++;
+        if ( min === Infinity ) return [];
+
+        const binSize = ( max - min ) / bins || 1;
+        const histogram: HistogramEntry[] = new Array( bins );
+        for ( let i = 0; i < bins; i++ ) histogram[ i ] = { bin: min + i * binSize, calls: 0 };
+
+        for ( const e of entries ) {
+            const t = e.time;
+            let i = ( ( t - min ) / binSize ) | 0;
+            if ( i >= bins ) i = bins - 1;
+            histogram[ i ].calls++;
         }
 
         return histogram;
