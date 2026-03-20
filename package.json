@@ -1,7 +1,20 @@
 {
   "type": "module",
+  "main": "dist/nano-profiler.cjs.js",
+  "module": "dist/nano-profiler.esm.js",
+  "types": "dist/NanoProfiler.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rollup -c && tsc --emitDeclarationOnly"
+  },
   "devDependencies": {
     "@types/node": "^25.5.0",
+    "@rollup/plugin-commonjs": "^24.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "rollup": "^3.30.0",
+    "rollup-plugin-typescript2": "^0.34.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }
