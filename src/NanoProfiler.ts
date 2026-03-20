@@ -13,6 +13,8 @@
 
 'use strict';
 
+import { get } from 'node:http';
+
 
 /** Environment types for the NanoProfiler. */
 export type Env = 'node' | 'browser' | 'unknown';
@@ -268,7 +270,7 @@ export class NanoProfiler {
      * 
      * @returns {Env} The detected environment ('node', 'browser', or 'unknown').
      */
-    public getenv () : Env {
+    public getEnv () : Env {
         return this.env;
     }
 
@@ -279,6 +281,15 @@ export class NanoProfiler {
      */
     public isActive () : boolean {
         return this.active;
+    }
+
+    /**
+     * Returns the number of profiling entries that have been logged so far.
+     * 
+     * @returns {number} The number of logged profiling entries.
+     */
+    public getEntryCount () : number {
+        return this.index + 1;
     }
 
     /**
