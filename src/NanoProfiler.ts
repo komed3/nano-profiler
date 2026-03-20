@@ -271,6 +271,15 @@ export class NanoProfiler {
         return this.runnerAsync( fn, label, meta );
     }
 
+    /**
+     * Starts a manual profiling session with the given label.
+     * 
+     * Records the current time and memory usage (if tracking is enabled) for the provided label,
+     * and stores this information in the internal tracking map.
+     * 
+     * @param {string} label - The label to associate with this profiling session.
+     * @throws {Error} If the provided label is already active.
+     */
     public start ( label: string ) : void {
         if ( this.tl.has( label ) ) throw new Error( `Label "${ label }" is already active` );
         this.tl.set( label, { time: this.now(), mem: this.options.trackMem ? this.mem() : undefined } );
