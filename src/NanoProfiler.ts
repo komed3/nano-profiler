@@ -1,6 +1,7 @@
 export type Env = 'node' | 'browser' | 'unknown';
 
 export interface ProfilerOptions {
+    enabled?: boolean;
     trackMem?: boolean;
     storeResults?: boolean;
     maxEntries?: number;
@@ -151,6 +152,7 @@ export class NanoProfiler {
      */
     constructor (
         options: ProfilerOptions = {
+            enabled: true,
             trackMem: false,
             storeResults: false,
             maxEntries: 10_000
@@ -162,11 +164,13 @@ export class NanoProfiler {
         this.entries = new Array ( this.maxEntries );
         this.hooks = hooks;
 
+        // Detect the environment and set up the appropriate timer and memory functions.
         this.env = this.detectEnv();
         this.now = this.setupNow();
         this.mem = this.setupMem();
 
-        this.active = this.enable();
+        // Enable the profiler if the 'enabled' option is set to true.
+        this.active = options.enabled ? this.enable() : this.disable();
     }
 
     /**
@@ -183,6 +187,7 @@ export class NanoProfiler {
         const trackMem = this.options.trackMem;
         const self = this, now = this.now, mem = this.mem;
 
+        // Set up the runner functions to record profiling data when executing code.
         this.runner = ( fn, label, meta ) => {
             const t0 = now(), m0 = trackMem ? mem() : undefined;
             let res;
@@ -193,6 +198,7 @@ export class NanoProfiler {
             ) }
         };
 
+        // Set up the asynchronous runner function to record profiling data when executing asynchronous code.
         this.runnerAsync = async ( fn, label, meta ) => {
             const t0 = now(), m0 = trackMem ? mem() : undefined;
             let res;
@@ -209,8 +215,8 @@ export class NanoProfiler {
     /**
      * Disables the profiler.
      * 
-     * Resets the runner functions to simply execute the provided code without recording profiling data,
-     * and returns false to indicate that the profiler is now disabled.
+     * Resets the runner functions to simply execute the provided code without recording
+     * profiling data, and returns false to indicate that the profiler is now disabled.
      * 
      * @returns {boolean} False, indicating that the profiler is now disabled.
      */
@@ -239,10 +245,28 @@ export class NanoProfiler {
         return this.active;
     }
 
+    /**
+     * Runs the provided function while recording profiling data,
+     * using the configured runner function.
+     * 
+     * @param {() => T} fn - The function to execute and profile.
+     * @param {string} [label] - An optional label to associate with the profiling entry for this function execution.
+     * @param {any} [meta] - Optional metadata to associate with the profiling entry for this function execution.
+     * @returns {T} The result of the executed function.
+     */
     public run< T > ( fn: () => T, label?: string, meta?: any ) : T {
         return this.runner( fn, label, meta );
     }
 
+    /**
+     * Runs the provided asynchronous function while recording profiling data,
+     * using the configured asynchronous runner function.
+     * 
+     * @param {() => Promise<T>} fn - The asynchronous function to execute and profile.
+     * @param {string} [label] - An optional label to associate with the profiling entry for this function execution.
+     * @param {any} [meta] - Optional metadata to associate with the profiling entry for this function execution.
+     * @returns {Promise<T>} A promise that resolves to the result of the executed asynchronous function.
+     */
     public async runAsync< T > ( fn: () => Promise< T >, label?: string, meta?: any ) : Promise< T > {
         return this.runnerAsync( fn, label, meta );
     }
