@@ -213,15 +213,17 @@ export class NanoProfiler {
             mTotal = 0, mMax = 0, mMin = Infinity;
 
         for ( const e of entries ) {
-            const { time, mem = 0 } = e;
+            const { time, mem } = e;
 
             tTotal += time;
             if ( time > tMax ) tMax = time;
             if ( time < tMin ) tMin = time;
 
-            mTotal += mem;
-            if ( mem > mMax ) mMax = mem;
-            if ( mem < mMin ) mMin = mem;
+            if ( mem ) {
+                mTotal += mem;
+                if ( mem > mMax ) mMax = mem;
+                if ( mem < mMin ) mMin = mem;
+            }
         }
 
         const summary: ProfilerSummary = { calls, time: {
