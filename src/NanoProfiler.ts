@@ -393,7 +393,7 @@ export class NanoProfiler {
             if ( time > tMax ) tMax = time;
             if ( time < tMin ) tMin = time;
 
-            if ( mem ) {
+            if ( mem !== undefined ) {
                 mTotal += mem;
                 if ( mem > mMax ) mMax = mem;
                 if ( mem < mMin ) mMin = mem;
