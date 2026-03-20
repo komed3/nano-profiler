@@ -200,8 +200,8 @@ export class NanoProfiler {
         hooks?: ProfilerHooks
     ) {
         this.options = { ...DEFAULT_OPTIONS, ...options };
-        this.maxEntries = options.maxEntries ?? 10_000;
-        this.sampleRate = Math.max( 0, Math.min( 1, this.options.sampleRate ?? 1 ) );
+        this.maxEntries = Number( this.options.maxEntries ?? 10_000 );
+        this.sampleRate = Math.max( 0, Math.min( 1, Number( this.options.sampleRate ?? 1 ) ) );
         this.hooks = hooks;
 
         // Detect the environment and set up the appropriate timer and memory functions.
@@ -213,7 +213,7 @@ export class NanoProfiler {
         this.entries = new Array ( this.maxEntries );
 
         // Enable the profiler if the 'enabled' option is set to true.
-        this.active = options.enabled ? this.enable() : this.disable();
+        this.active = this.options.enabled ? this.enable() : this.disable();
     }
 
     /**
