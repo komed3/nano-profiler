@@ -78,6 +78,16 @@ export type AsyncRunnerFn< T = any > = ( fn: () => Promise< T >, label?: string,
 export type TimerFn = () => number;
 
 
+/** Default configuration options for the NanoProfiler. */
+const DEFAULT_OPTIONS: ProfilerOptions = {
+    enabled: true,
+    trackMem: false,
+    storeResults: false,
+    sampleRate: 1,
+    maxEntries: 10_000
+};
+
+
 /** The main NanoProfiler class that provides profiling functionality. */
 export class NanoProfiler {
 
@@ -186,16 +196,10 @@ export class NanoProfiler {
      * @param {ProfilerHooks} [hooks] - Hooks for custom behavior on entry recording and flushing.
      */
     constructor (
-        options: ProfilerOptions = {
-            enabled: true,
-            trackMem: false,
-            storeResults: false,
-            sampleRate: 1,
-            maxEntries: 10_000
-        },
+        options: ProfilerOptions = {},
         hooks?: ProfilerHooks
     ) {
-        this.options = options;
+        this.options = { ...DEFAULT_OPTIONS, ...options };
         this.maxEntries = options.maxEntries ?? 10_000;
         this.sampleRate = Math.max( 0, Math.min( 1, this.options.sampleRate ?? 1 ) );
         this.hooks = hooks;
