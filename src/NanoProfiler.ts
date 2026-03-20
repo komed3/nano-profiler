@@ -263,8 +263,9 @@ export class NanoProfiler {
         }
 
         if ( min === Infinity ) return [];
+        if ( max === min ) return [ { bin: min, calls: entries.length } ];
 
-        const binSize = ( max - min ) / bins || 1;
+        const binSize = ( max - min ) / bins;
         const histogram: HistogramEntry[] = new Array( bins );
         for ( let i = 0; i < bins; i++ ) histogram[ i ] = { bin: min + i * binSize, calls: 0 };
 
