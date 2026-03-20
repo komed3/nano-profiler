@@ -46,26 +46,40 @@ export type TimerFn = () => number;
 
 export class NanoProfiler {
 
+    /** A singleton instance of NanoProfiler for global use. */
     private static globalInstance?: NanoProfiler;
 
+    /**
+     * Returns the global instance of NanoProfiler, creating it if it doesn't already exist.
+     * 
+     * @returns {NanoProfiler} The global NanoProfiler instance.
+     */
     public static global () : NanoProfiler {
         return NanoProfiler.globalInstance ??= new NanoProfiler ();
     }
 
+    /** Internal state and configuration */
     private readonly options: ProfilerOptions;
     private readonly maxEntries: number;
     private readonly hooks?: ProfilerHooks;
     private readonly env: Env;
 
+    /** Timer functions for measuring time and memory usage, set up based on the detected environment. */
     private now: TimerFn;
     private mem: TimerFn;
 
+    /** Runner functions for executing profiled code, set up to record profiling data. */
     private runner!: RunnerFn;
     private runnerAsync!: AsyncRunnerFn;
 
+    /** Indicates whether the profiler is currently active (enabled) or not. */
     private active: boolean;
+
+    /** An array to store profiling entries, and an index to keep track of the current position in the array. */
     private entries: ProfilerEntry[];
     private index = 0;
+
+    /** A map to track active labels for manual start/end profiling. */
     private tl = new Map< string, { time: number, mem: number | undefined } > ();
 
     /**
@@ -105,6 +119,15 @@ export class NanoProfiler {
         }
     }
 
+    /**
+     * Records a profiling entry with the given time, memory usage, result, label, and metadata.
+     * 
+     * @param {number} time - The time taken for the profiled code to execute.
+     * @param {number | undefined} mem - The memory used during the execution (if tracking is enabled).
+     * @param {T} res - The result of the profiled code (if storing results is enabled).
+     * @param {string} [label] - An optional label for the profiling entry.
+     * @param {any} [meta] - Optional metadata to associate with the profiling entry.
+     */
     private record< T > ( time: number, mem: number | undefined, res: T, label?: string, meta?: any ) : void {
         if ( this.index >= this.maxEntries ) return;
 
