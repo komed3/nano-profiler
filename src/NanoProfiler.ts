@@ -143,6 +143,12 @@ export class NanoProfiler {
         this.hooks?.onEntry?.( entry );
     }
 
+    /**
+     * Creates a new instance of NanoProfiler with the given options and hooks.
+     * 
+     * @param {ProfilerOptions} [options] - Configuration options for the profiler.
+     * @param {ProfilerHooks} [hooks] - Hooks for custom behavior on entry recording and flushing.
+     */
     constructor (
         options: ProfilerOptions = {
             trackMem: false,
@@ -163,7 +169,17 @@ export class NanoProfiler {
         this.active = this.enable();
     }
 
+    /**
+     * Enables the profiler.
+     * 
+     * Sets up the runner functions to record profiling data when executing code,
+     * and returns true to indicate that the profiler is now active.
+     * 
+     * @returns {boolean} True if the profiler was successfully enabled, false otherwise.
+     */
     public enable () : boolean {
+        if ( this.active ) return true;
+
         const trackMem = this.options.trackMem;
         const self = this, now = this.now, mem = this.mem;
 
@@ -190,6 +206,14 @@ export class NanoProfiler {
         return this.active = true;
     }
 
+    /**
+     * Disables the profiler.
+     * 
+     * Resets the runner functions to simply execute the provided code without recording profiling data,
+     * and returns false to indicate that the profiler is now disabled.
+     * 
+     * @returns {boolean} False, indicating that the profiler is now disabled.
+     */
     public disable () : boolean {
         this.runner = ( fn ) => fn();
         this.runnerAsync = ( fn ) => fn();
@@ -197,10 +221,20 @@ export class NanoProfiler {
         return this.active = false;
     }
 
+    /**
+     * Returns the detected environment in which the profiler is running.
+     * 
+     * @returns {Env} The detected environment ('node', 'browser', or 'unknown').
+     */
     public getenv () : Env {
         return this.env;
     }
 
+    /**
+     * Checks if the profiler is currently active (enabled).
+     * 
+     * @returns {boolean} True if the profiler is active, false otherwise.
+     */
     public isActive () : boolean {
         return this.active;
     }
