@@ -193,8 +193,17 @@ export class NanoProfiler {
     }
 
     public report ( label?: string ) : ProfilerEntry[] {
-        const data = this.entries.slice( 0, this.index );
-        return label ? data.filter( e => e.label === label ) : data;
+        const { entries, index } = this;
+
+        if ( ! label ) return entries.slice( 0, index );
+        const result: ProfilerEntry[] = [];
+
+        for ( let i = 0; i < index; i++ ) {
+            const e = entries[ i ];
+            if ( e.label === label ) result.push( e );
+        }
+
+        return result;
     }
 
     public summary ( label?: string ) : ProfilerSummary {
