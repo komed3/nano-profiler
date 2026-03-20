@@ -298,6 +298,12 @@ export class NanoProfiler {
         );
     }
 
+    /**
+     * Retrieves profiling entries, optionally filtered by a specific label.
+     * 
+     * @param {string} [label] - An optional label to filter the profiling entries.
+     * @returns {ProfilerEntry[]} An array of profiling entries that match the specified label.
+     */
     public report ( label?: string ) : ProfilerEntry[] {
         const { entries, index } = this;
         if ( ! label ) return entries.slice( 0, index );
@@ -311,6 +317,15 @@ export class NanoProfiler {
         return result;
     }
 
+    /**
+     * Generates a summary of profiling data, optionally filtered by a specific label.
+     * 
+     * Calculates total, maximum, minimum, and average time (and memory usage if tracking
+     * is enabled) for the profiling entries that match the specified label.
+     * 
+     * @param {string} [label] - An optional label to filter the profiling entries for the summary.
+     * @returns {ProfilerSummary} A summary object containing aggregated profiling data.
+     */
     public summary ( label?: string ) : ProfilerSummary {
         const entries = this.report( label );
         const calls = entries.length;
@@ -347,6 +362,12 @@ export class NanoProfiler {
         return summary;
     }
 
+    /**
+     * Identifies the profiling entry with the longest execution time, optionally filtered by a specific label.
+     * 
+     * @param {string} [label] - An optional label to filter the profiling entries for hotspot analysis.
+     * @returns {ProfilerEntry | undefined} The profiling entry with the longest execution time.
+     */
     public hotspot ( label?: string ) : ProfilerEntry | undefined {
         const entries = this.report( label );
         if ( entries.length === 0 ) return undefined;
@@ -357,6 +378,16 @@ export class NanoProfiler {
         return max;
     }
 
+    /**
+     * Generates a histogram of execution times for profiling entries, optionally filtered by a specific label.
+     * 
+     * Calculates the minimum and maximum execution times, divides the range into specified bins, and counts
+     * the number of entries that fall into each bin to create a histogram representation of the execution times.
+     * 
+     * @param {string} [label] - An optional label to filter the profiling entries for histogram generation.
+     * @param {number} [bins=10] - The number of bins to use for the histogram.
+     * @returns {HistogramEntry[]} An array of histogram entries representing the distribution of execution times.
+     */
     public histogram ( label?: string, bins: number = 10 ) : HistogramEntry[] {
         const entries = this.report( label );
         if ( entries.length === 0 ) return [];
@@ -387,6 +418,11 @@ export class NanoProfiler {
         return histogram;
     }
 
+    /**
+     * Flushes the recorded profiling entries, returning them and resetting the internal state.
+     * 
+     * @returns {ProfilerEntry[]} An array of profiling entries that were flushed.
+     */
     public flush () : ProfilerEntry[] {
         const data = this.entries.slice( 0, this.index );
         this.hooks?.onFlush?.( data );
