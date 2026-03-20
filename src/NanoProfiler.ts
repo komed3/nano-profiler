@@ -22,6 +22,7 @@ export interface ProfilerOptions {
     enabled?: boolean;
     trackMem?: boolean;
     storeResults?: boolean;
+    sampleRate?: number;
     maxEntries?: number;
 }
 
@@ -95,6 +96,7 @@ export class NanoProfiler {
     /** Internal state and configuration. */
     private readonly options: ProfilerOptions;
     private readonly maxEntries: number;
+    private readonly sampleRate: number;
     private readonly hooks?: ProfilerHooks;
     private readonly env: Env;
 
@@ -188,12 +190,14 @@ export class NanoProfiler {
             enabled: true,
             trackMem: false,
             storeResults: false,
+            sampleRate: 1,
             maxEntries: 10_000
         },
         hooks?: ProfilerHooks
     ) {
         this.options = options;
         this.maxEntries = options.maxEntries ?? 10_000;
+        this.sampleRate = Math.max( 0, Math.min( 1, this.options.sampleRate ?? 1 ) );
         this.hooks = hooks;
 
         // Detect the environment and set up the appropriate timer and memory functions.
