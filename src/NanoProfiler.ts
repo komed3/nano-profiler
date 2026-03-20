@@ -11,6 +11,9 @@
  * @license MIT
  */
 
+'use strict';
+
+
 /** Environment types for the NanoProfiler. */
 export type Env = 'node' | 'browser' | 'unknown';
 
@@ -28,7 +31,7 @@ export interface ProfilerHooks {
     onFlush?: ( entry: ProfilerEntry[] ) => void
 }
 
-/** A profiling entry representing a single measurement of execution time and memory usage. */
+/** Profiling entry representing single measurement of time and memory usage. */
 export interface ProfilerEntry< T = any > {
     label?: string;
     time: number;
@@ -37,7 +40,7 @@ export interface ProfilerEntry< T = any > {
     meta?: any;
 }
 
-/** A summary of profiling data, including total, maximum, minimum, and average time and memory usage. */
+/** Summary of profiling data, including total, max, min, and avg time and memory usage. */
 export interface ProfilerSummary {
     calls: number;
     time: {
@@ -54,7 +57,7 @@ export interface ProfilerSummary {
     };
 }
 
-/** An entry in the histogram representing a range of execution times and the number of calls that fall into that range. */
+/** Histogram entry representing range of times and number of calls whin that range. */
 export interface HistogramEntry {
     bin: number;
     calls: number;
@@ -67,6 +70,8 @@ export type AsyncRunnerFn< T = any > = ( fn: () => Promise< T >, label?: string,
 /** Function type for timer functions that return the current time or memory usage. */
 export type TimerFn = () => number;
 
+
+/** The main NanoProfiler class that provides profiling functionality. */
 export class NanoProfiler {
 
     /** A singleton instance of NanoProfiler for global use. */
