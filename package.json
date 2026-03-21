@@ -9,14 +9,28 @@
     "url": "https://komed3.de"
   },
   "homepage": "https://github.com/komed3/nano-profiler",
-  "types": "dist/NanoProfiler.d.ts",
-  "main": "dist/nano-profiler.cjs.js",
-  "module": "dist/nano-profiler.esm.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/komed3/nano-profiler.git"
+  },
+  "bugs": {
+    "url": "https://github.com/komed3/nano-profiler/issues"
+  },
+  "funding": {
+    "type": "ko-fi",
+    "url": "https://ko-fi.com/komed3"
+  },
   "files": [
     "dist",
     "README",
     "LICENSE"
   ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "types": "dist/NanoProfiler.d.ts",
+  "main": "dist/nano-profiler.cjs.js",
+  "module": "dist/nano-profiler.esm.js",
   "scripts": {
     "build": "rollup -c && tsc --emitDeclarationOnly"
   },
