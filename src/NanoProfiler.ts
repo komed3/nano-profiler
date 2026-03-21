@@ -126,7 +126,7 @@ export class NanoProfiler {
     private index = 0;
 
     /** A map to track active labels for manual start/end profiling. */
-    private tl = new Map< string, { time: number, mem: number | undefined } > ();
+    private tl = new Map< string, { label: string | undefined, time: number, mem: number | undefined } > ();
 
     /**
      * Detects the current environment (Node.js, browser, or unknown).
@@ -323,31 +323,33 @@ export class NanoProfiler {
     }
 
     /**
-     * Starts a manual profiling session with the given label.
+     * Starts a manual profiling session with an optional label and returns
+     * a unique identifier for the session.
      * 
-     * @param {string} label - The label to associate with this profiling session.
-     * @throws {Error} If the provided label is already active.
+     * @param {string} [label] - An optional label to associate with the profiling session.
+     * @return {string} A unique identifier for the profiling session.
      */
-    public start ( label: string ) : void {
-        if ( this.tl.has( label ) ) throw new Error( `Label "${ label }" is already active` );
-        this.tl.set( label, { time: this.now(), mem: this.options.trackMem ? this.mem() : undefined } );
+    public start ( label?: string ) : string {
+        const uuid = crypto.randomUUID();
+        this.tl.set( uuid, { label, time: this.now(), mem: this.options.trackMem ? this.mem() : undefined } );
+        return uuid;
     }
 
     /**
      * Ends a manual profiling session with the given label and records the profiling data.
      * 
-     * @param {string} label - The label associated with the profiling session to end.
-     * @throws {Error} If the provided label is not currently active.
+     * @param {string} uuid - The unique identifier for the profiling session to end.
+     * @throws {Error} If the provided uuid does not correspond to an active profiling session.
      */
-    public end ( label: string ) : void {
-        const start = this.tl.get( label );
-        if ( ! start ) throw new Error( `Label "${ label }" is not active` );
+    public end ( uuid: string ) : void {
+        const start = this.tl.get( uuid );
+        if ( ! start ) throw new Error( `No active profiling session found for label: ${ uuid }` );
 
-        this.tl.delete( label );
+        this.tl.delete( uuid );
         this.record(
             this.now() - start.time,
             this.options.trackMem ? this.mem() - start.mem! : undefined,
-            undefined, label
+            undefined, start.label
         );
     }
 
