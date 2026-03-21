@@ -41,25 +41,27 @@ const entries = profiler.report();
 const summary = profiler.summary();
 ```
 
-## API highlights
+## API reference
 
-- `new NanoProfiler( options?, hooks? )` — construct a profiler instance
-- `NanoProfiler.global()` — obtain a shared singleton instance
-- `run( fn, label?, meta? )` — run and profile sync code
-- `runAsync( fn, label?, meta? )` — run and profile async code
-- `start( label )` / `end( label )` — manual timing
-- `report( label? )` — get raw profiling entries
-- `summary( label? )` — get aggregated summary data
-- `histogram( label?, bins? )` — get histogram data
-- `percentiles( label?, ps? )` — get percentile data
-- `hotspot( label? )` — get the slowest entry for a label
-- `flush()` — clear all recorded data
+## Options
 
-## Build outputs
+- `enabled` (boolean, default: `true`)  
+  Whether the profiler is enabled by default.
+- `trackMem` (boolean, default: `false`)  
+  Whether to track memory usage in addition to execution time. Enabling this may have a performance impact.
+- `storeResults` (boolean, default: `false`)  
+  If set to `true`, the profiler stores results of profiled blocks/functions.
+- `sampleRate` (number, default: `1`)  
+  A value between `0` and `1` that determines the percentage of blocks/functions getting profiled. Useful for reducing overhead in high-frequency code.
+- `maxEntries` (number, default: `10000`)  
+  Maximum number of profiled time/memory entries. If the limit is reached, no more entries will be recorded until `flush()`.
 
-- CommonJS bundle: `dist/nano-profiler.cjs`
-- ESM bundle: `dist/nano-profiler.mjs`
-- Type declarations: `dist/nano-profiler.d.ts`
+### Hooks
+
+- `onEntry ( entry: ProfileEntry ) : void`  
+  A callback function that gets called whenever a new profile entry is recorded. Useful for real-time monitoring or custom logging.
+- `onFlush ( entries: ProfileEntry[] ) : void`  
+  A callback function that gets called when the profiler is flushed. Receives all stored entries as an argument.
 
 ----
 
