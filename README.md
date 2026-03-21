@@ -4,6 +4,9 @@ NanoProfiler is a small, dependency-free profiler implemented in TypeScript.
 It provides a single `NanoProfiler` class with utilities to measure execution time (and optionally memory) for synchronous and asynchronous code blocks.
 The library works in Node.js and browser environments.
 
+The profiler is designed to produce as little overhead as possible, making it suitable for profiling high-frequency code paths.
+It supports manual start/end profiling as well as automatic profiling of functions and code blocks.
+
 ## Installation
 
 Install from npm:
@@ -32,9 +35,9 @@ await profiler.runAsync( async () => {
 }, 'asyncTask' );
 
 // manual start/end
-profiler.start( 'manual' );
+const session = profiler.start( 'manual' );
 // work
-profiler.end( 'manual' );
+profiler.end( session );
 
 // get results
 const entries = profiler.report();
@@ -71,10 +74,10 @@ const summary = profiler.summary();
   Profiles the execution of a synchronous function `fn`. Optionally accepts a `label` for categorization and `meta` for additional data. Returns the result of the function.
 - `async runAsync< T >( fn: () => Promise< T >, label?: string, meta?: any ) : Promise< T >`  
   Profiles the execution of an asynchronous function `fn`. Optionally accepts a `label` for categorization and `meta` for additional data. Returns a promise that resolves to the result of the function.
-- `start( label: string ) : void`  
-  Starts profiling a code block with the given `label`. You can call `end(label)` later to stop profiling and record the entry.
-- `end( label: string ) : void`  
-  Ends profiling for the code block with the given `label`. This should be called after a corresponding `start(label)` to record the profiling entry.
+- `start( label?: string ) : string`  
+  Starts profiling for a code block with an optional `label` and returns a unique identifier for the profiling session. This can be used for manual profiling of code blocks that don't fit well with the `run` or `runAsync` methods.
+- `end( session: string ) : void`  
+  Ends the profiling session identified by the `session` string returned from `start()`. This will record the profiling data for that session. If the provided session identifier does not correspond to an active profiling session, an error will be thrown.
 
 ### Reports
 
