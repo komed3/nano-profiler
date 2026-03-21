@@ -1,8 +1,17 @@
 {
-  "type": "module",
+  "name": "nano-profiler",
+  "description": "Fast and lightweight JavaScript profiler for measuring time and memory consumption",
+  "license": "MIT",
+  "version": "1.0.0",
+  "author": {
+    "name": "komed3 (Paul Köhler)",
+    "email": "webmaster@komed3.de",
+    "url": "https://komed3.de"
+  },
+  "homepage": "https://github.com/komed3/nano-profiler",
+  "types": "dist/NanoProfiler.d.ts",
   "main": "dist/nano-profiler.cjs.js",
   "module": "dist/nano-profiler.esm.js",
-  "types": "dist/NanoProfiler.d.ts",
   "files": [
     "dist",
     "README",
