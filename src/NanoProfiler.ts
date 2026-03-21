@@ -330,22 +330,22 @@ export class NanoProfiler {
      * @return {string} A unique identifier for the profiling session.
      */
     public start ( label?: string ) : string {
-        const uuid = crypto.randomUUID();
-        this.tl.set( uuid, { label, time: this.now(), mem: this.options.trackMem ? this.mem() : undefined } );
-        return uuid;
+        const session = crypto.randomUUID();
+        this.tl.set( session, { label, time: this.now(), mem: this.options.trackMem ? this.mem() : undefined } );
+        return session;
     }
 
     /**
      * Ends a manual profiling session with the given label and records the profiling data.
      * 
-     * @param {string} uuid - The unique identifier for the profiling session to end.
-     * @throws {Error} If the provided uuid does not correspond to an active profiling session.
+     * @param {string} session - The unique identifier for the profiling session to end.
+     * @throws {Error} If the provided session does not correspond to an active profiling session.
      */
-    public end ( uuid: string ) : void {
-        const start = this.tl.get( uuid );
-        if ( ! start ) throw new Error( `No active profiling session found for label: ${ uuid }` );
+    public end ( session: string ) : void {
+        const start = this.tl.get( session );
+        if ( ! start ) throw new Error( `No active profiling session found for label: ${ session }` );
 
-        this.tl.delete( uuid );
+        this.tl.delete( session );
         this.record(
             this.now() - start.time,
             this.options.trackMem ? this.mem() - start.mem! : undefined,
