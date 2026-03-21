@@ -43,6 +43,52 @@ const summary = profiler.summary();
 
 ## API reference
 
+### Instantiate
+
+- `NanoProfiler.global()`  
+  Returns the global singleton instance of `NanoProfiler`. This is useful for simple use cases where you don't need multiple profilers.
+- `new NanoProfiler( options?, hooks? )`  
+  Creates a new instance of `NanoProfiler` with optional configuration options and hooks.
+
+### Control
+
+- `enable() : boolean`  
+  Enables the profiler. Returns `true` to indicate that profiling is now active.
+- `disable() : boolean`  
+  Disables the profiler. Returns `false` to indicate that profiling is now inactive.
+- `flush () : ProfilerEntry[]`  
+  Clears all stored profiling entries and returns them as an array. This is useful for resetting the profiler state or retrieving results before starting a new profiling session.
+- `genEnv() : 'node' | 'browser' | 'unknown'`  
+  Returns the detected runtime environment. This can be used for environment-specific profiling logic or optimizations.
+- `isActive() : boolean`  
+  Returns `true` if the profiler is currently enabled and active, or `false` if it is disabled.
+- `getEntryCount() : number`  
+  Returns the total number of profiling entries that have been recorded since the last flush.
+
+### Profiling
+
+- `run< T >( fn: () => T, label?: string, meta?: any ) : T`  
+  Profiles the execution of a synchronous function `fn`. Optionally accepts a `label` for categorization and `meta` for additional data. Returns the result of the function.
+- `async runAsync< T >( fn: () => Promise< T >, label?: string, meta?: any ) : Promise< T >`  
+  Profiles the execution of an asynchronous function `fn`. Optionally accepts a `label` for categorization and `meta` for additional data. Returns a promise that resolves to the result of the function.
+- `start( label: string ) : void`  
+  Starts profiling a code block with the given `label`. You can call `end(label)` later to stop profiling and record the entry.
+- `end( label: string ) : void`  
+  Ends profiling for the code block with the given `label`. This should be called after a corresponding `start(label)` to record the profiling entry.
+
+### Reports
+
+- `report( label?: string ) : ProfilerEntry[]`  
+  Returns an array of profiling entries. If a `label` is provided, only entries with that label will be returned.
+- `summary( label?: string ) : ProfilerSummary`  
+  Returns a summary of profiling results, including total time, average time, count, and optionally memory usage. If a `label` is provided, the summary will be for entries with that label.
+- `hotspot( label?: string ) : ProfilerEntry | undefined`  
+  Returns the single profiling entry with the longest execution time. If a `label` is provided, only entries with that label will be considered.
+- `histogram( label?: string, bins: number = 10 ) : HistogramEntry[]`  
+  Returns a histogram of execution times for the profiled entries. The `bins` parameter determines how many bins the histogram will have. If a `label` is provided, only entries with that label will be included in the histogram.
+- `percentiles( label?: string, ps: number[] = [ 50, 90, 95, 99 ] ) : PercentileEntry[]`  
+  Returns the specified percentiles of execution times for the profiled entries. The `ps` parameter is an array of percentiles to calculate (e.g., 50 for median, 90 for 90th percentile). If a `label` is provided, only entries with that label will be included in the percentile calculations.
+
 ## Options
 
 - `enabled` (boolean, default: `true`)  
@@ -58,9 +104,9 @@ const summary = profiler.summary();
 
 ### Hooks
 
-- `onEntry ( entry: ProfileEntry ) : void`  
+- `onEntry( entry: ProfileEntry ) : void`  
   A callback function that gets called whenever a new profile entry is recorded. Useful for real-time monitoring or custom logging.
-- `onFlush ( entries: ProfileEntry[] ) : void`  
+- `onFlush( entries: ProfileEntry[] ) : void`  
   A callback function that gets called when the profiler is flushed. Receives all stored entries as an argument.
 
 ----
